@@ -1,2 +1,4 @@
-# COMP3009_ML_CW_SVM
-train Support Vector Machines (SVMs) using different kernels, set hyper-parameters using inner-cross-fold validation.
+# Machine Learning Assignments
+1. [SVM](cw1/README.md)
+2.
+3.
