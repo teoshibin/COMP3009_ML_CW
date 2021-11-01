@@ -1,10 +1,12 @@
-% directory should be in cw1
+% set root dir as cw1
 
 close all
 clear
 clc
 
 addpath('./datasets');
+
+rng(1);
 
 %% load data
 
@@ -18,9 +20,11 @@ heart_X = heart_mat(:, 1:end-1);
 heart_Y = heart_mat(:, end);
 
 %% feature normalisation
+heart_X = minMaxNorm(heart_X);
 
 %% SVM linear kernal
+partitionedModel = fitcsvm(heart_X, heart_Y, 'KernelFunction','linear', 'BoxConstraint',1, "KFold", 10);
 
-%% SVM Gaussian RBF
-
-%% SVM Polynomial
+[validationPredictions, validationScores] = kfoldPredict(partitionedModel);
+validationAccuracy = 1 - kfoldLoss(partitionedModel, 'LossFun', 'ClassifError');
+disp("Accuracy: " + validationAccuracy);

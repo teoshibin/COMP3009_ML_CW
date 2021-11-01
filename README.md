@@ -1,5 +1,5 @@
 # Machine Learning Assignments
-1. [SVM Classification  & Regression](cw1/README.md)
+1. [SVM Classification  & Regression](cw1)
 2.
 3.
 
