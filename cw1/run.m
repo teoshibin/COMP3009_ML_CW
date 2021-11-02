@@ -5,6 +5,7 @@ clear
 clc
 
 addpath('./datasets');
+addpath('./functions');
 
 rng(1);
 
