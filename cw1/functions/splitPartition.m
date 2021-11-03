@@ -1,4 +1,4 @@
-function [test_data, train_data] = splitPartition(data, range_indices, random_perm, partition_selection)
+function [test_data, train_data] = splitPartition(data, range_indices, partition_selection)
     %SPLITPARTITION split actual data using partitionIndex and select one
     %single test partition
     %
@@ -18,9 +18,8 @@ function [test_data, train_data] = splitPartition(data, range_indices, random_pe
     
     % random number mapping e.g. random_perm = [3 9 2 5 8 7 6 1]
     % single shuffled partition [3 9 2] = random_perm([1 2 3])
-    shuffled_test_indices = random_perm(range_list);
     is_test_mat = false(height(data), 1);
-    is_test_mat(shuffled_test_indices) = true;
+    is_test_mat(range_list) = true;
 
     test_data = data(is_test_mat == 1, :);
     train_data = data(is_test_mat == 0, :);
