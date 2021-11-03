@@ -22,7 +22,7 @@ heart_X = minMaxNorm(heart_X);
 
 norm_heart_mat = [heart_X heart_Y];
 
-%% training
+%% cross validation
 
 % changable variables
 k = 10;
@@ -44,7 +44,7 @@ for i = 1:k
     
     % setup inner partition
     inner_range_indices = partitionIndex(height(outer_train_data), inner_k);
-    
+       
     for j = 1:inner_k
         
         % create inner partition
@@ -69,38 +69,47 @@ for i = 1:k
             if tuningAccuracy > bestTuningAccuracy
                 all_best_hyper_c(i, j) = c;
                 bestTuningAccuracy = tuningAccuracy;
+                bestTunedModel = model;
             end
             
         end
-                
-        % save accuracy
-        accuracies(i) = accuracies(i) + (bestTuningAccuracy / inner_k);
         
         fprintf("\t Inner: %d TestSize: %d TrainSize: %d Accuracy: %f BestC: %d\n", ...
             j, height(inner_test_data), height(inner_train_data), bestTuningAccuracy, all_best_hyper_c(i, j));
     
     end
    
-    fprintf("Outer: %d TestSize: %d TrainSize: %d Accuracy: %f\n", ...
-        i, height(outer_test_data), height(outer_train_data), accuracies(i));
+    % get tuned c
+    mean_c = round(mean(all_best_hyper_c(i,:)));
+    
+    % train using tuned c
+    model = fitcsvm(outer_train_data(:, 1:end-1), outer_train_data(:, end), ...
+                'BoxConstraint', mean_c, "KernelFunction", "linear", "Verbose", 1);
+    
+    % calculate accuracy
+    prediction = model.predict(outer_test_data(:, 1:end-1));
+    correct = numel(find(prediction == outer_test_data(:,end)));
+    all = height(outer_test_data);
+    accuracies(i) =  correct / all;
+    
+    fprintf("Outer: %d TestSize: %d TrainSize: %d Accuracy: %f MeanC: %d\n", ...
+        i, height(outer_test_data), height(outer_train_data), accuracies(i), mean_c);
     
 end
-%%
-best_hyper_constant = round(mean(all_best_hyper_c, "all"));
-mean_accuracy = mean(accuracies);
 
-fprintf("Accuracy: %f BestC: %d\n", mean_accuracy, best_hyper_constant);
+%% final result
+
+best_hyper_constant = round(mean(all_best_hyper_c, "all"));
+mean_accuracy = mean(accuracies, "all");
+
+fprintf("FinalAccuracy: %f FinalC: %d", mean_accuracy, best_hyper_constant);
 
 %% final model
 
 final_model = fitcsvm(heart_X, heart_Y, 'BoxConstraint', best_hyper_constant, "KernelFunction", "linear");
 
+%% final model output
+
 number_of_support_vector = numel(find(final_model.IsSupportVector == 1));
 support_vector_percentage = number_of_support_vector / numel(final_model.IsSupportVector);
-
-fprintf("supportVectors: %d svPercentage: %f\n", number_of_support_vector, support_vector_percentage);
-
-
-
-
-
+fprintf("supportVectors: %d svPercentage: %f", number_of_support_vector, support_vector_percentage);
