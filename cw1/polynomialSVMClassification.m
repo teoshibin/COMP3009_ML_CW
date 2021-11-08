@@ -30,11 +30,12 @@ tic
 % changable variables
 k = 10;
 inner_k = 5;
-hyper_c_boundary = [1 10:10:100]; % search space
-most_order_boundary = [3:10];
+hyper_c_boundary = [0.1:0.1:2]; % search space
+most_order_boundary = [3:2:7];
 
 % fixed variables
 accuracies = zeros(1, k);
+f1Scores = zeros(1, k);
 all_best_hyper_c = zeros(k, inner_k); % each row contain every inner cv best c
 all_best_hyper_order = zeros(k, inner_k);
 
@@ -82,15 +83,15 @@ for i = 1:k
         end
         
         fprintf("\t Inner: %d TestSize: %d TrainSize: %d " + ...
-                "Accuracy: %f F1Score: %f BestC: %d BestQ: %d\n", ...
+                "Accuracy: %f F1Score: %f BestC: %f BestQ: %d\n", ...
                 j, height(inner_test_data), height(inner_train_data), ...
                 inner_accuracy, bestF1Score, all_best_hyper_c(i, j), all_best_hyper_order(i,j));
     
     end
    
     % get tuned c & sigma
-    most_c = maxCountOccur(all_best_hyper_c(i,:));
-    most_order = maxCountOccur(all_best_hyper_order(i,:));
+    most_c = maxCountOccur(all_best_hyper_c(1:i,:));
+    most_order = maxCountOccur(all_best_hyper_order(1:i,:));
     
     % train using tuned c & sigma
     model = fitcsvm( ...
@@ -99,17 +100,17 @@ for i = 1:k
         "KernelFunction", "polynomial", ...
         "BoxConstraint", most_c, ...
         "PolynomialOrder", most_order, ...
-        "Verbose", 1 ...
+        "Verbose", 0 ...
         );
     
     % calculate accuracy
-    f1Score = myFOneScore(model, outer_test_data(:, 1:end-1), outer_test_data(:,end));
-    accuracies(i) =  myAccuracy(model, outer_test_data(:, 1:end-1), outer_test_data(:,end));
+    f1Scores(i) = myFOneScore(model, outer_test_data(:, 1:end-1), outer_test_data(:,end));
+    accuracies(i) = myAccuracy(model, outer_test_data(:, 1:end-1), outer_test_data(:,end));
     
     fprintf("Outer: %d TestSize: %d TrainSize: %d " + ...
-            "Accuracy: %f F1Score: %f MostC: %d MostOrder: %d\n", ...
+            "Accuracy: %f F1Score: %f MostC: %f MostOrder: %d\n", ...
             i, height(outer_test_data), height(outer_train_data), ...
-            accuracies(i), f1Score, most_c, most_order ...
+            accuracies(i), f1Scores(i), most_c, most_order ...
             );
     
 end
@@ -117,11 +118,12 @@ end
 %% final result
 
 mean_accuracy = mean(accuracies, "all");
+mean_f1 = mean(f1Scores, "all");
 best_hyper_constant = maxCountOccur(all_best_hyper_c);
 best_hyper_order = maxCountOccur(all_best_hyper_order);
 
-fprintf("FinalAccuracy: %f FinalC: %d FinalOrder: %d ", ...
-    mean_accuracy, best_hyper_constant, best_hyper_order);
+fprintf("FinalAccuracy: %f FinalF1: %f FinalC: %d FinalOrder: %d ", ...
+    mean_accuracy, mean_f1, best_hyper_constant, best_hyper_order);
 
 % return elapsed time
 toc
