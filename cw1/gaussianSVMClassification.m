@@ -30,11 +30,12 @@ tic
 % changable variables
 k = 10;
 inner_k = 5;
-hyper_c_boundary = [1 10:10:100]; % search space
+hyper_c_boundary = [0.1:0.1:2]; % search space
 hyper_sigma_boundary = [1:10];
 
 % fixed variables
 accuracies = zeros(1, k);
+f1Scores = zeros(1, k);
 all_best_hyper_c = zeros(k, inner_k); % each row contain every inner cv best c
 all_best_hyper_sigma = zeros(k, inner_k);
 
@@ -81,15 +82,15 @@ for i = 1:k
         end
         
         fprintf("\t Inner: %d TestSize: %d TrainSize: %d " + ...
-                "Accuracy: %f F1Score: %f BestC: %d BestS: %d\n", ...
+                "Accuracy: %f F1Score: %f BestC: %f BestS: %d\n", ...
             j, height(inner_test_data), height(inner_train_data), ...
             inner_accuracy, bestF1Score, all_best_hyper_c(i, j), all_best_hyper_sigma(i,j));
     
     end
    
     % get tuned c & sigma
-    most_c = maxCountOccur(all_best_hyper_c(i,:));
-    most_sigma = maxCountOccur(all_best_hyper_sigma(i,j));
+    most_c = maxCountOccur(all_best_hyper_c(1:i,:));
+    most_sigma = maxCountOccur(all_best_hyper_sigma(1:i,j));
     
     % train using tuned c & sigma
     model = fitcsvm( ...
@@ -98,28 +99,29 @@ for i = 1:k
         "KernelFunction", "gaussian", ...
         "BoxConstraint", most_c, ...
         "KernelScale", most_sigma, ...
-        "Verbose", 1 ...
+        "Verbose", 0 ...
         );
     
     % calculate accuracy
-    f1Score = myFOneScore(model, outer_test_data(:, 1:end-1), outer_test_data(:,end));
+    f1Scores(i) = myFOneScore(model, outer_test_data(:, 1:end-1), outer_test_data(:,end));
     accuracies(i) =  myAccuracy(model, outer_test_data(:, 1:end-1), outer_test_data(:,end));
     
     fprintf("Outer: %d TestSize: %d TrainSize: %d " + ...
-            "Accuracy: %f F1Score: %f MostC: %d MostSigma: %d\n", ...
+            "Accuracy: %f F1Score: %f MostC: %f MostSigma: %d\n", ...
             i, height(outer_test_data), height(outer_train_data), ...
-            accuracies(i), f1Score, most_c, most_sigma);
+            accuracies(i), f1Scores(i), most_c, most_sigma);
     
 end
 
 %% final result
 
 mean_accuracy = mean(accuracies, "all");
+mean_f1 = mean(f1Scores, "all");
 best_hyper_constant = maxCountOccur(all_best_hyper_c);
 best_hyper_sigma = maxCountOccur(all_best_hyper_sigma);
 
-fprintf("FinalAccuracy: %f FinalC: %d FinalSigma: %d", ...
-    mean_accuracy, best_hyper_constant, best_hyper_sigma);
+fprintf("FinalAccuracy: %f FinalF1: %f FinalC: %f FinalSigma: %d", ...
+    mean_accuracy, mean_f1, best_hyper_constant, best_hyper_sigma);
 
 % return elapsed time
 toc
