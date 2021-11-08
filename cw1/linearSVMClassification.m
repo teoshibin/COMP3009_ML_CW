@@ -30,10 +30,11 @@ tic
 % changable variables
 k = 10;
 inner_k = 5;
-hyper_c_boundary = [1 10:10:100]; % search space
+hyper_c_boundary = [0.1:0.1:2]; % search space
 
 % fixed variables
 accuracies = zeros(1, k);
+f1Scores = zeros(1, k);
 all_best_hyper_c = zeros(k, inner_k); % each row contain every inner cv best c
 
 
@@ -54,19 +55,17 @@ for i = 1:k
         [inner_test_data, inner_train_data] = splitPartition(outer_train_data, inner_range_indices, j);
 
         % variables
-%         bestTuningAccuracy = 0;
         bestF1Score = 0;
                 
-        % exhaustive search
+        % grid search
         % change nesting of nested loops depending on numbers of hyper-parameters
         for c = hyper_c_boundary
                     
             model = fitcsvm( ...
                 inner_train_data(:, 1:end-1), ...
                 inner_train_data(:, end), ...
-                'BoxConstraint', c, ...
                 "KernelFunction", "linear", ...
-                "Verbose", 0 ...
+                'BoxConstraint', c ...
                 );
         
             f1Score = myFOneScore(model, inner_test_data(:, 1:end-1), inner_test_data(:, end));
@@ -80,42 +79,43 @@ for i = 1:k
         end
         
         fprintf("\t Inner: %d TestSize: %d TrainSize: %d " + ...
-                "Accuracy: %f F1Score: %f BestC: %d\n", ...
+                "Accuracy: %f F1Score: %f BestC: %f\n", ...
                 j, height(inner_test_data), height(inner_train_data), ...
                 inner_accuracy, bestF1Score, all_best_hyper_c(i, j));
     
     end
    
     % get tuned c
-    mean_c = round(mean(all_best_hyper_c(i,:)));
+    most_c = maxCountOccur(all_best_hyper_c(1:i,:));
     
     % train using tuned c
     model = fitcsvm( ...
         outer_train_data(:, 1:end-1), ...
         outer_train_data(:, end), ...
-        "BoxConstraint", mean_c, ...
         "KernelFunction", "linear", ...
-        "Verbose", 1 ...
+        "BoxConstraint", most_c, ...
+        "Verbose", 0 ...
         );
     
     % calculate accuracy
-    f1Score = myFOneScore(model, outer_test_data(:, 1:end-1), outer_test_data(:,end));
-    accuracies(i) =  myAccuracy(model, outer_test_data(:, 1:end-1), outer_test_data(:,end));
+    f1Scores(i) = myFOneScore(model, outer_test_data(:, 1:end-1), outer_test_data(:,end));
+    accuracies(i) = myAccuracy(model, outer_test_data(:, 1:end-1), outer_test_data(:,end));
     
     fprintf("Outer: %d TestSize: %d TrainSize: %d " + ...
-            "Accuracy: %f F1Score: %f MeanC: %d\n", ...
+            "Accuracy: %f F1Score: %f MostC: %f\n", ...
             i, height(outer_test_data), height(outer_train_data), ...
-            accuracies(i), f1Score, mean_c ...
+            accuracies(i), f1Scores(i), most_c ...
             );
     
 end
 
 %% final result
 
-best_hyper_constant = round(mean(all_best_hyper_c, "all"));
+best_hyper_constant = maxCountOccur(all_best_hyper_c);
+mean_f1 = mean(f1Scores, "all");
 mean_accuracy = mean(accuracies, "all");
 
-fprintf("FinalAccuracy: %f FinalC: %d", mean_accuracy, best_hyper_constant);
+fprintf("FinalAccuracy: %f FinalF1: %f FinalC: %d", mean_accuracy, mean_f1, best_hyper_constant);
 
 % return elapsed time
 toc
@@ -134,4 +134,4 @@ final_model = fitcsvm( ...
 
 number_of_support_vector = numel(find(final_model.IsSupportVector == 1));
 support_vector_percentage = number_of_support_vector / numel(final_model.IsSupportVector);
-fprintf("supportVectors: %d svPercentage: %f", number_of_support_vector, support_vector_percentage);
+fprintf("supportVectors: %d / %d  svPercentage: %f", number_of_support_vector, height(norm_heart_mat), support_vector_percentage);
