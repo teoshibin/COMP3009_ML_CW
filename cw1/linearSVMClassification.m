@@ -134,4 +134,4 @@ final_model = fitcsvm( ...
 
 number_of_support_vector = numel(find(final_model.IsSupportVector == 1));
 support_vector_percentage = number_of_support_vector / numel(final_model.IsSupportVector);
-fprintf("supportVectors: %d svPercentage: %f", number_of_support_vector, support_vector_percentage);
+fprintf("supportVectors: %d / %d  svPercentage: %f", number_of_support_vector, height(norm_heart_mat), support_vector_percentage);
