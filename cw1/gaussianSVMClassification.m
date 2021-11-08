@@ -90,7 +90,7 @@ for i = 1:k
    
     % get tuned c & sigma
     most_c = maxCountOccur(all_best_hyper_c(1:i,:));
-    most_sigma = maxCountOccur(all_best_hyper_sigma(1:i,j));
+    most_sigma = maxCountOccur(all_best_hyper_sigma(1:i,:));
     
     % train using tuned c & sigma
     model = fitcsvm( ...
