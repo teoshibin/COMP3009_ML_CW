@@ -30,9 +30,8 @@ tic
 % variables
 k = 10;
 inner_k = 5;
-hyper_c_boundary = [0.1:0.3:2]; % search space
 hyper_sigma_boundary = [1:10];
-epsilon_boundary = [1:2:9];
+epsilon_boundary = [1:10];
 
 % records
 RMSEs = zeros(1, k);
@@ -54,29 +53,28 @@ for i = 1:k
        
        bestRMSE = Inf;
        
-       for c = hyper_c_boundary
-           for s = hyper_sigma_boundary
-               for epsilon = epsilon_boundary
-                   model = fitrsvm(inner_train_data(:, 1:end-1), inner_train_data(:,end), "BoxConstraint", c,"KernelFunction", "gaussian", "KernelScale", s, "Epsilon", epsilon,"Verbose", 0);
-                   RMSE = myRMSE(model, inner_test_data(:, 1:end-1), inner_test_data(:, end));
-                   
-                   if RMSE < bestRMSE
-                       bestRMSE = RMSE;
-                       all_best_hyper_c(i,j) = c;
-                       all_best_epsilon(i,j) = epsilon;
-                       all_best_hyper_sigma(i,j) = s;
-                   end
+   
+       for s = hyper_sigma_boundary
+           for epsilon = epsilon_boundary
+               model = fitrsvm(inner_train_data(:, 1:end-1), inner_train_data(:,end),"KernelFunction", "gaussian", "KernelScale", s, "Epsilon", epsilon,"Verbose", 0);
+               RMSE = myRMSE(model, inner_test_data(:, 1:end-1), inner_test_data(:, end));
+               
+               if RMSE < bestRMSE
+                   bestRMSE = RMSE;
+                   all_best_epsilon(i,j) = epsilon;
+                   all_best_hyper_sigma(i,j) = s;
                end
-           end    
-       end
+           end
+       end    
+      
        
         fprintf("\t Inner: %d TestSize: %d TrainSize: %d " + ...
-            "RMSE: %f BestC: %f BestS: %d BestEpsilon: %d\n", ...
+            "RMSE: %f BestS: %d BestEpsilon: %d\n", ...
             j, height(inner_test_data), height(inner_train_data), ...
-            bestRMSE, all_best_hyper_c(i, j), all_best_hyper_sigma(i,j), all_best_epsilon(i,j));
+            bestRMSE, all_best_hyper_sigma(i,j), all_best_epsilon(i,j));
     end
     
-    most_c = maxCountOccur(all_best_hyper_c(1:i,:));
+
     most_epsilon = maxCountOccur(all_best_epsilon(1:i,:));
     most_sigma = maxCountOccur(all_best_hyper_sigma(1:i,:));
   
@@ -84,28 +82,26 @@ for i = 1:k
     model = fitrsvm(outer_test_data(:, 1:end-1), outer_test_data(:, end), ...
         "KernelFunction", "gaussian", ...
         "Epsilon", most_epsilon, ...
-        "BoxConstraint", most_c, ...
         "KernelScale", most_sigma, ...
         "Verbose", 0);
     
     RMSEs(i) = myRMSE(model, outer_test_data(:, 1:end-1), outer_test_data(:, end));
     
     fprintf("Outer: %d TestSize: %d TrainSize: %d " + ...
-            "RMSE: %f MostC: %f MostS: %d MostEpsilon %d\n", ...
+            "RMSE: %f MostS: %d MostEpsilon %d\n", ...
             i, height(outer_test_data), height(outer_train_data), ...
-            RMSEs(i), most_c, most_sigma, most_epsilon ...
+            RMSEs(i), most_sigma, most_epsilon ...
             );
     
 end
 
 %% final result
 mean_RMSE_Gaussian = mean(RMSEs,"all");
-best_hyper_constant = maxCountOccur(all_best_hyper_c);
 best_hyper_sigma = maxCountOccur(all_best_hyper_sigma);
 best_hyper_epsilon = maxCountOccur(all_best_epsilon);
 
-fprintf("FinalRMSEGaussian: %f FinalC: %f FinalSigma: %d FinalEpsilon: %d", ...
-      mean_RMSE_Gaussian, best_hyper_constant, best_hyper_sigma, best_hyper_epsilon);
+fprintf("FinalRMSEGaussian: %f FinalSigma: %d FinalEpsilon: %d", ...
+      mean_RMSE_Gaussian, best_hyper_sigma, best_hyper_epsilon);
 
 % return elapsed time
 toc
@@ -114,7 +110,6 @@ toc
 final_model = fitrsvm(concrete_X,concrete_Y, ...
         "KernelFunction", "gaussian", ...
         "Epsilon", best_hyper_epsilon, ...
-        "BoxConstraint", best_hyper_constant, ...
         "KernelScale", best_hyper_sigma, ...
         "Verbose", 1);
 
