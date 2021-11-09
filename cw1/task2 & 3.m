@@ -7,9 +7,9 @@
 % same codes as mlx files)
 
 %% Location of the code
-% F1 score for classification is located at the final_model section within
+% F1 score for classification is located at the final result section within
 % all mlx
-% RMSE for regression is located at the final_model section within all mlx
+% RMSE for regression is located at the final result section within all mlx
 % support vector count is at the end of the line within all mlx
 
 
