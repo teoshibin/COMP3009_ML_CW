@@ -27,10 +27,11 @@ model = fitcsvm(heart_X, heart_Y,...
                 'BoxConstraint', 1);
 
 % Evaluate the results.
-accuracy =myAccuracy(model,heart_X,heart_Y);
+accuracy = myAccuracy(model,heart_X,heart_Y);
 hist(heart_Y);
-confusionMatrix2classes(model, heart_X, heart_Y);
-cm = confusionmat(heart_Y, model.predict(heart_X));
+cm = confusionMatrix2classes(model, heart_X, heart_Y);
+% cm = confusionmat(heart_Y, model.predict(heart_X));
+confusionchart(cm);
 fprintf("Accuracy: %f", accuracy);
 
 %% Linear SVM for Regression
