@@ -30,10 +30,10 @@ train_mat = norm_heart_mat(1:train_portion, :);
 test_mat = norm_heart_mat(train_portion + 1 : end,:);
 
 figure,
-hist(norm_heart_mat(:, end));
+histogram(norm_heart_mat(:, end));
 
 % training
-sigmas = [0.01:0.01:10];
+sigmas = [0.01:0.01:20];
 iter = length(sigmas);
 f1Score = zeros(1, iter);
 accuracies = zeros(1, iter);
@@ -55,5 +55,9 @@ end
 
 figure,
 plot(sigmas, f1Score);
+xlabel('sigma');
+ylabel('F1 Score');
 figure,
 plot(sigmas, accuracies);
+xlabel('sigma')
+ylabel('Accuracy')
