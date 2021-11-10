@@ -8,5 +8,7 @@ train Support Vector Machines (SVMs) using different kernels, set hyper-paramete
 - Regression
     [Concrete Compressive Strength Data Set](https://archive.ics.uci.edu/ml/datasets/Concrete+Compressive+Strength)
 
-## Reading Resources
-- [read excel datasets](https://uk.mathworks.com/help/matlab/ref/xlsread.html)
+# File
+- main scripts are `task1.m` , `task2 & 3.m` and `task4.m`
+- file containing "demo_" prefix is the live script of 6 configurations for all classification and regression containing results
+ 
