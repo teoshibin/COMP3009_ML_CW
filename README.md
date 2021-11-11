@@ -1,6 +1,6 @@
 # Machine Learning Assignments
-1. [SVM Classification  & Regression](cw1)
-2.
+1. [SVM Classification & Regression](cw1)
+2. [Decision Tree Classification & Regression](cw2)
 3.
 
 ## Usage
