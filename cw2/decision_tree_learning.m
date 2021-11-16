@@ -12,6 +12,13 @@ function [best_attribute, best_threshold] = Choose_Attribute(features, targets)
 
 end
 
+function I = calculateEntropy(positive,negative,threshold)
+    p1 = (positive/(positive+negative));
+    p2 = (negative/(positive+negative));
+    I = -(p1 * log2(p1) + p2 * log2(p2));    
+end
+
+
 function decision_tree = decision_tree_learning(features, labels, task_type =1)
     if task_type == 1:
         
