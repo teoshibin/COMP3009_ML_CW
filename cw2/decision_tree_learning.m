@@ -4,7 +4,7 @@ function [best_attribute, best_threshold] = Choose_Attribute(features, targets)
         distinct_value = unique(attribute_column)
         
         for value = distinct_value
-            attribute_column
+            INFORMATION_GAIN(POSITIVES, NEGATIVES)
         end
         
     end
@@ -30,8 +30,6 @@ function decision_tree = decision_tree_learning(features, labels, task_type =1)
         right_targets = targets(features(:,best_attribute) >= best_threshold);
         
         decision_tree.kids(end+1) = decion_tree_learning(left_examples, left_targets);
-        
-       
         
     end
 
