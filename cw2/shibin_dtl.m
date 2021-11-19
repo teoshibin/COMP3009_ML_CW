@@ -1,9 +1,10 @@
-function out = shibin_dtl(features, targets, task_type)
+function out = shibin_dtl(features, targets, task_type, feature_names)
 
     arguments
         features (:,:) {mustBeNumeric}
         targets (:,1) {mustBeNumeric}
         task_type {mustBeMember(task_type,["Classification","regression"])}
+        feature_names (1,:) string
     end
 
     tree = decision_tree();
@@ -19,23 +20,23 @@ function out = shibin_dtl(features, targets, task_type)
         else
             % find best threshold and attribute
             [best_attribute, best_threshold] = Choose_Attribute(features, targets);
-            tree.op = best_attribute;
+            tree.op = feature_names(best_attribute);
             tree.threshold = best_threshold;
-            tree.attribute = width(features);
+            tree.attribute = best_attribute;
 
             % split left
             left_examples = features(features(:,best_attribute) < best_threshold,:);
             left_targets = targets(features(:,best_attribute) < best_threshold);
             
             % calculate left child node
-            left_node = shibin_dtl(left_examples, left_targets, task_type);
+            left_node = shibin_dtl(left_examples, left_targets, task_type,feature_names);
             
             % split right
             right_examples = features(features(:,best_attribute) >= best_threshold,:);
             right_targets = targets(features(:,best_attribute) >= best_threshold);
 
             % calculate right child node
-            right_node = shibin_dtl(right_examples, right_targets, task_type);
+            right_node = shibin_dtl(right_examples, right_targets, task_type,feature_names);
                       
             tree.kids = {left_node right_node};
             
