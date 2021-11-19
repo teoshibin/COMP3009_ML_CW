@@ -35,7 +35,7 @@ function out = shibin_dtl(features, targets, task_type, feature_names, depth)
         tree.threshold = best_threshold;
         tree.attribute = best_attribute;
 
-        fprintf("attribute: %d threshold %.4f\n", best_attribute, best_threshold);
+        %fprintf("attribute: %d threshold %.4f\n", best_attribute, best_threshold);
         
         % split left
         left_examples = features(features(:,best_attribute) < best_threshold,:);
