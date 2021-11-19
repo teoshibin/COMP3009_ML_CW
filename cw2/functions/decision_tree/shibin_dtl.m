@@ -15,7 +15,7 @@ function out = shibin_dtl(features, targets, task_type, feature_names)
             
             % only one type of label left then assign prediction label
             tree.prediction = targets(1);
-            fprintf("Completed Instances: %d\n", numel(targets));
+           % fprintf("Completed Instances: %d\n", numel(targets));
             
         else
             % find best threshold and attribute
