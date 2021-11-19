@@ -1,3 +1,27 @@
+%% test run
+
+close all
+clear
+clc
+
+addpath('./datasets');
+addpath('./functions');
+
+heart_table = readtable('heart_failure_clinical_records_dataset.csv');
+heart_mat = table2array(heart_table);
+heart_X = heart_mat(:, 1:end-1);
+heart_Y = heart_mat(:, end);
+
+fprintf("Total Instances: %d\n", height(heart_X));
+tree = shibin_dtl(heart_X, heart_Y, "Classification", heart_table.Properties.VariableNames);
+
+DrawDecisionTree(tree);
+
+answer = predict(tree, heart_X);
+accuracy = myAccuracy(heart_Y, answer);
+fprintf("Accuracy: %.2d%%\n", accuracy*100);
+
+%% main function
 function out = shibin_dtl(features, targets, task_type, feature_names)
 
     arguments
@@ -135,4 +159,27 @@ function out = calculateRemainder(features, targets, selected_feature, threshold
 
     % calcuate information gain
     out = left_weight * left_entropy + right_weight * right_entropy;
+end
+
+% THIS CODE IS COPIED FROM THE MAIN DTL FILE
+function outputs = predict(tree, inputs)
+    outputs = [];
+    root = tree;
+    for i = 1:height(inputs)
+        tree = root;
+        input = inputs(i,:);
+        while isempty(tree.prediction)
+            tree.attribute;
+            if input(tree.attribute) < tree.threshold
+                tree = tree.kids{1};
+%                 disp("left")
+            elseif input(tree.attribute) >= tree.threshold
+                tree = tree.kids{2};
+%                 disp("right")
+            end
+        end
+        output = tree.prediction;
+        outputs = cat(1,outputs,output);
+    end
+    
 end
