@@ -19,7 +19,7 @@ DrawDecisionTree(tree);
 
 answer = predict(tree, heart_X);
 accuracy = myAccuracy(heart_Y, answer);
-fprintf("Accuracy: %.2d%%\n", accuracy*100);
+fprintf("Accuracy: %.2f%%\n", accuracy*100);
 
 %% main function
 function out = shibin_dtl(features, targets, task_type, feature_names)
