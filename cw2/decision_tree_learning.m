@@ -1,24 +1,38 @@
-function decision_tree = decision_tree_learning(features, targets, task_type)
-    decision_tree = decision_tree() 
+heart_table = readtable('./datasets/heart_failure_clinical_records_dataset.csv');
+heart_mat = table2array(heart_table);
+
+heart_X = heart_mat(:, 1:end-1);
+heart_Y = heart_mat(:, end);
+
+decision_tree = decision_tree_learning(heart_X, heart_Y, 1, heart_table)
+%%
+check = predict(decision_tree, heart_X);
+function tree = decision_tree_learning(features, targets, task_type, table)
+    tree = decision_tree() ;
     % Classification Tree
     if task_type == 1
         if numel(unique(targets)) == 1
-            decision_tree.prediction = targets(1);
-
+            tree.prediction = targets(1);
         else
-
-            [best_attribute, best_threshold] = Choose_Attribute(features, targets);
-            decision_tree.op = best_attribute
+            [best_attribute, best_threshold] = Choose_Attribute(features, targets, task_type);
+            if best_attribute == 0
+                tree.prediction = mode(targets);
+                return
+            end
+            
+            tree.op = table.Properties.VariableNames{best_attribute};
+            tree.threshold = best_threshold;
+            tree.attribute = best_attribute;
 
             left_examples = features(features(:,best_attribute) < best_threshold,:);
             left_targets = targets(features(:,best_attribute) < best_threshold);
 
-            decision_tree.kids(end+1) = decision_tree_learning(left_examples, left_targets);
+            tree.kids{1} = decision_tree_learning(left_examples, left_targets, task_type, table);
 
             right_examples = features(features(:,best_attribute) >= best_threshold,:);
             right_targets = targets(features(:,best_attribute) >= best_threshold);
 
-            decision_tree.kids(end+1) = decision_tree_learning(right_examples, right_targets);
+            tree.kids{2} = decision_tree_learning(right_examples, right_targets, task_type, table);
         end
         
     end
@@ -30,26 +44,35 @@ function decision_tree = decision_tree_learning(features, targets, task_type)
 end
 
 function [best_attribute, best_threshold] = Choose_Attribute(features, targets, task_type)
-    if task_tyope == 1:
-        % binary classification
-        unique_target = unique(targets); 
-        positive = sum(targets == 1);
-        negetive = sum(targets == 0);
-        main_entropy = calculateEntropy(positive, negetive);
-
-        for attribute = 1:width(features)
-
+    % Classification Tree
+    if task_type == 1 
+        
+        max_gain = 0;
+        best_attribute = 0;
+        best_threshold = -1;
+        
+        for attribute = 1:width(features) % Lopp through all the attribute
             attribute_column = features(:,attribute);
-            distinct_value = unique(attribute_column);
-            if distinct_value == 2
-                for value = distinct_value
-                    % binary classification
+            attribute_values = unique(attribute_column); 
+            if numel(attribute_values) == 1
+                continue
+            end
+            thresholds = (attribute_values(1:end-1) + attribute_values(2:end)) / 2;
+            for threshold = transpose(thresholds)
+                gain = calculateGain(attribute_column, targets, threshold);
+                if gain > max_gain
+                    max_gain = gain;
+                    best_attribute = attribute;
+                    best_threshold = threshold;
                 end
-
             end
         end
-    
-
+    end
+    % Regression Tree
+    if task_type == 0
+        
+        
+    end
 end
 
 function I = calculateEntropy(positive, negative)
@@ -58,18 +81,48 @@ function I = calculateEntropy(positive, negative)
     I = -(p1 * log2(p1) + p2 * log2(p2));    
 end
 
-function R = calculateRemainder(attribute, targets)
+function R = calculateRemainder(attribute, targets, threshold)
     total = 0;
-    for unique_value = unique(atrribute)
-        weight = height(targets(attribute == unique_value))/height(attribute);
-        positives = sum(targets(attribute == unique_value));
-        negatives = height(targets(attribute == unique_value)) - positives;
-        total = total + weight*calculateEntropy(positives, negatives);
-    end
+    
+    % The gain for left kid.
+    weight = height(targets(attribute < threshold))/height(attribute);
+    positives = sum(targets(attribute < threshold));
+    negatives = height(targets(attribute < threshold)) - positives;
+    total = total + weight*calculateEntropy(positives, negatives);
+    
+    % The gain for right kid.
+    weight = height(targets(attribute >= threshold))/height(attribute);
+    positives = sum(targets(attribute >= threshold));
+    negatives = height(targets(attribute >= threshold)) - positives;
+    total = total + weight*calculateEntropy(positives, negatives);
+
     R = total;
 end
 
-
-function gain = calculateGain(attribute, targets)
-    gain = calculateEntrophy(height(targets(targets == 1)),height(targets(targets == 0))) - Remainder(attribute, targets);
+function gain = calculateGain(attribute, targets, threshold)
+    gain = calculateEntropy( sum(targets == 1), sum(targets == 0) ) - calculateRemainder(attribute, targets, threshold);
 end
+
+function outputs = predict(tree, inputs)
+    outputs = []
+    root = tree
+    for i = 1:height(inputs)
+        tree = root
+        input = inputs(i,:);
+        while isempty(tree.prediction)
+            tree.attribute;
+            if input(tree.attribute) < tree.threshold
+                tree = tree.kids{1};
+                disp("left")
+            elseif input(tree.attribute) >= tree.threshold
+                tree = tree.kids{2};
+                disp("right")
+            end
+        end
+        output = tree.prediction;
+        outputs = cat(1,outputs,output);
+    end
+    
+end
+
+
