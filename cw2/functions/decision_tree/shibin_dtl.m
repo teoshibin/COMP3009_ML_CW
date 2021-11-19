@@ -1,54 +1,61 @@
-function out = shibin_dtl(features, targets, task_type, feature_names)
+function out = shibin_dtl(features, targets, task_type, feature_names, depth)
 
     arguments
         features (:,:) {mustBeNumeric}
         targets (:,1) {mustBeNumeric}
         task_type {mustBeMember(task_type,["Classification","Regression"])}
         feature_names (1,:) string
+        depth uint8
     end
-
+      
     tree = struct_decision_tree();
         
-        if numel(unique(targets)) < 2 
+    % stop spliting if same attributes
+    unique_features_count = height(unique(array2table(features), "row"));
+    % stop spliting if same labels
+    unique_targets_count = height(unique(targets));
+    % stop spliting if same attributes or same labels
+    unique_count = min([unique_features_count unique_targets_count]);
             
-            % only one type of label left then assign prediction label
-            tree.prediction = targets(1);
-           % fprintf("Completed Instances: %d\n", numel(targets));
-            
-        else
-            % find best threshold and attribute
-            [best_attribute, best_threshold] = Choose_Attribute(features, targets, task_type);
-            tree.op = feature_names(best_attribute);
-            tree.threshold = best_threshold;
-            tree.attribute = best_attribute;
+    if unique_count == 1 || depth == 0
 
-            fprintf("attribute: %d threshold %.4f\n", best_attribute, best_threshold);
-            
-            if best_threshold == 0
-                disp("hi");
-            end
-            
-            % if left examples turn into empty matrix this recursion wont
-            % be able to stop
-            % split left
-            left_examples = features(features(:,best_attribute) < best_threshold,:);
-            left_targets = targets(features(:,best_attribute) < best_threshold);
-            
-            % calculate left child node
-            left_node = shibin_dtl(left_examples, left_targets, task_type,feature_names);
-            
-            % split right
-            right_examples = features(features(:,best_attribute) >= best_threshold,:);
-            right_targets = targets(features(:,best_attribute) >= best_threshold);
-
-            % calculate right child node
-            right_node = shibin_dtl(right_examples, right_targets, task_type,feature_names);
-                      
-            tree.kids = {left_node right_node};
-            
+        if task_type == "Classification"
+            tree.prediction = maxCountOccur(targets);
+        elseif task_type == "Regression"
+            tree.prediction = mean(targets, "all");
+%             fprintf("Completed Instances: %d\n", numel(targets));
         end
+
+
+    elseif unique_count > 1
+
+        % find best threshold and attribute
+        [best_attribute, best_threshold] = Choose_Attribute(features, targets, task_type);
+        tree.op = feature_names(best_attribute);
+        tree.threshold = best_threshold;
+        tree.attribute = best_attribute;
+
+        fprintf("attribute: %d threshold %.4f\n", best_attribute, best_threshold);
         
-        out = tree;
+        % split left
+        left_examples = features(features(:,best_attribute) < best_threshold,:);
+        left_targets = targets(features(:,best_attribute) < best_threshold);
+
+        % calculate left child node
+        left_node = shibin_dtl(left_examples, left_targets, task_type,feature_names, depth - 1);
+
+        % split right
+        right_examples = features(features(:,best_attribute) >= best_threshold,:);
+        right_targets = targets(features(:,best_attribute) >= best_threshold);
+
+        % calculate right child node
+        right_node = shibin_dtl(right_examples, right_targets, task_type,feature_names, depth - 1);
+
+        tree.kids = {left_node right_node};
+
+    end
+
+    out = tree;
 end
 
 function [best_attribute, best_threshold] = Choose_Attribute(features, targets, task_type)
@@ -105,7 +112,7 @@ function [best_attribute, best_threshold] = Choose_Attribute(features, targets, 
         root_variance = safeVar(targets);
 
         % store classification results
-        reductions = inf(1, width(features));
+        reductions = zeros(1, width(features));
         thresholds = zeros(1, width(features));
 
         % for all attribute
@@ -126,21 +133,22 @@ function [best_attribute, best_threshold] = Choose_Attribute(features, targets, 
 
                 % for all unique value in this attribute
                 for threshold = threshold_list
-
+                        
                     % calcuate information gain
                     remainder = varianceRemainder(features, targets, attribute_index, threshold);
                     reduction = root_variance - remainder;
 
-                    if reduction < reductions(attribute_index)
+                    if reduction > reductions(attribute_index)
                         reductions(attribute_index) = reduction;
                         thresholds(attribute_index) = threshold;
+                      
                     end
                 end
             end
         end
 
         % find best attribute
-        best_attribute = find(reductions == min(reductions), 1);
+        best_attribute = find(reductions == max(reductions), 1);
         best_threshold = thresholds(best_attribute);
         
     end
@@ -210,5 +218,5 @@ function out = varianceRemainder(features, targets, selected_feature, threshold)
 
     % calcuate information gain
     out = left_weight * left_variance + right_weight * right_variance;
-    
+        
 end
