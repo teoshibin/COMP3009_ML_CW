@@ -3,8 +3,9 @@ clear
 clc
 
 addpath('./datasets');
-addpath('./functions');
+addpath(genpath('./functions'));
 
+rng(1);
 
 heart_table = readtable('./datasets/heart_failure_clinical_records_dataset.csv');
 heart_mat = table2array(heart_table);
