@@ -5,8 +5,9 @@ heart_X = heart_mat(:, 1:end-1);
 heart_Y = heart_mat(:, end);
 
 decision_tree = decision_tree_learning(heart_X, heart_Y, 1, heart_table)
+DrawDecisionTree(decision_tree)
+answer = predict(decision_tree, heart_X);
 %%
-check = predict(decision_tree, heart_X);
 function tree = decision_tree_learning(features, targets, task_type, table)
     tree = decision_tree() ;
     % Classification Tree
