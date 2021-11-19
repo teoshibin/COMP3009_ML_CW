@@ -1,28 +1,5 @@
-%% test run
-
-close all
-clear
-clc
-
-addpath('./datasets');
-addpath('./functions');
-
-heart_table = readtable('heart_failure_clinical_records_dataset.csv');
-heart_mat = table2array(heart_table);
-heart_X = heart_mat(:, 1:end-1);
-heart_Y = heart_mat(:, end);
-
-decision_tree = decision_tree_learning(heart_X, heart_Y, 1, heart_table);
-
-DrawDecisionTree(decision_tree);
-
-answer = predict(decision_tree, heart_X);
-accuracy = myAccuracy(heart_Y, answer);
-fprintf("Accuracy: %.2f%%\n", accuracy*100);
-
-%% main function
 function tree = decision_tree_learning(features, targets, task_type, table)
-    tree = decision_tree() ;
+    tree = struct_decision_tree() ;
     % Classification Tree
     if task_type == 1
         if numel(unique(targets)) == 1
@@ -115,28 +92,6 @@ end
 
 function gain = calculateGain(attribute, targets, threshold)
     gain = calculateEntropy( sum(targets == 1), sum(targets == 0) ) - calculateRemainder(attribute, targets, threshold);
-end
-
-function outputs = predict(tree, inputs)
-    outputs = []
-    root = tree
-    for i = 1:height(inputs)
-        tree = root
-        input = inputs(i,:);
-        while isempty(tree.prediction)
-            tree.attribute;
-            if input(tree.attribute) < tree.threshold
-                tree = tree.kids{1};
-                disp("left")
-            elseif input(tree.attribute) >= tree.threshold
-                tree = tree.kids{2};
-                disp("right")
-            end
-        end
-        output = tree.prediction;
-        outputs = cat(1,outputs,output);
-    end
-    
 end
 
 
