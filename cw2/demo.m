@@ -28,7 +28,7 @@ DrawDecisionTree(tree);
 
 answer = predict(tree, heart_X);
 accuracy = myAccuracy(heart_Y, answer);
-fprintf("Accuracy: %.2f%%\n", accuracy*100);
+fprintf("Overfit Accuracy: %.2f%%\n", accuracy*100);
 
 
 %% Decison Tree for Regression
@@ -49,6 +49,8 @@ concrete_X = concrete_mat(:, 1:end-1);
 concrete_Y = concrete_mat(:,end);
 
 fprintf("Total Instances: %d\n", height(concrete_X));
+names = getAlph();
+names = names(1:length(concrete_table.Properties.VariableNames))';
 tree = decision_tree_learning(concrete_X, concrete_Y, "Regression", concrete_table.Properties.VariableNames, 10);
 
 DrawDecisionTree(tree);
@@ -56,6 +58,6 @@ DrawDecisionTree(tree);
 answer = predict(tree, concrete_X);
 
 rmse = myRMSE(concrete_Y, answer);
-fprintf("RMSE: %.2f\n", rmse);
+fprintf("Overfit RMSE: %.2f\n", rmse);
 
 
