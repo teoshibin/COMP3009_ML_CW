@@ -15,15 +15,16 @@
     └── cw2/
         ├── datasets/
         ├── functions/
-        │   ├── data_manipulation/
+        │   ├── data_processing/
         │   ├── decision_tree/
-        │   ├── performance_measures/
-        │   └── helper/
-        └── main.m
+        │   ├── metrics/
+        └── demo.m
+        └── cross_validation_classification.m
+        └── cross_validation_regression.m
 ```
-
-`data manipulation` for data validation split and normalisation   
+`demo.m` show both tree are working for the datasets.
+`cross_validation_classification.m` show the evaluation of decision tree on the classification task.
+`cross_validation_regression.m` show the evalutation of decision tree on the regression task.
+`data_processing` for data validation split and normalisation   
 `decision_tree` for all decision tree related functions   
-`performance measures` for accuracy, f1, confusion matrix etc.   
-`helper` misc functions for math etc.   
-`main.m` all runnable scripts
+`metrics` for accuracy, f1, confusion matrix etc.   
