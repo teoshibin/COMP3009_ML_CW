@@ -1,70 +1,158 @@
-function tree = decision_tree_learning(features, targets, task_type, table)
-    tree = struct_decision_tree() ;
-    % Classification Tree
-    if task_type == 1
-        if numel(unique(targets)) == 1
-            tree.prediction = targets(1);
-        else
-            [best_attribute, best_threshold] = Choose_Attribute(features, targets, task_type);
-%             if best_attribute == 0
-%                 tree.prediction = mode(targets);
-%                 return
-%             end
+function out = decision_tree_learning(features, targets, task_type, feature_names, depth)
+
+    arguments
+        features (:,:) {mustBeNumeric}
+        targets (:,1) {mustBeNumeric}
+        task_type {mustBeMember(task_type,["Classification","Regression"])}
+        feature_names (1,:) string
+        depth uint8
+    end
+      
+    tree = struct_decision_tree();
+        
+    % stop spliting if same attributes
+    unique_features_count = height(unique(array2table(features), "row"));
+    % stop spliting if same labels
+    unique_targets_count = height(unique(targets));
+    % stop spliting if same attributes or same labels
+    unique_count = min([unique_features_count unique_targets_count]);
             
-            tree.op = table.Properties.VariableNames{best_attribute};
-            tree.threshold = best_threshold;
-            tree.attribute = best_attribute;
+    if unique_count == 1 || depth == 0
 
-            left_examples = features(features(:,best_attribute) < best_threshold,:);
-            left_targets = targets(features(:,best_attribute) < best_threshold);
-
-            tree.kids{1} = decision_tree_learning(left_examples, left_targets, task_type, table);
-
-            right_examples = features(features(:,best_attribute) >= best_threshold,:);
-            right_targets = targets(features(:,best_attribute) >= best_threshold);
-
-            tree.kids{2} = decision_tree_learning(right_examples, right_targets, task_type, table);
+        if task_type == "Classification"
+            tree.prediction = maxCountOccur(targets);
+        elseif task_type == "Regression"
+            tree.prediction = mean(targets, "all");
+%             fprintf("Completed Instances: %d\n", numel(targets));
         end
+
+
+    elseif unique_count > 1
+
+        % find best threshold and attribute
+        [best_attribute, best_threshold] = Choose_Attribute(features, targets, task_type);
+        tree.op = feature_names(best_attribute);
+        tree.threshold = best_threshold;
+        tree.attribute = best_attribute;
+
+        %fprintf("attribute: %d threshold %.4f\n", best_attribute, best_threshold);
         
+        % split left
+        left_examples = features(features(:,best_attribute) < best_threshold,:);
+        left_targets = targets(features(:,best_attribute) < best_threshold);
+
+        % calculate left child node
+        left_node = decision_tree_learning(left_examples, left_targets, task_type,feature_names, depth - 1);
+
+        % split right
+        right_examples = features(features(:,best_attribute) >= best_threshold,:);
+        right_targets = targets(features(:,best_attribute) >= best_threshold);
+
+        % calculate right child node
+        right_node = decision_tree_learning(right_examples, right_targets, task_type,feature_names, depth - 1);
+
+        tree.kids = {left_node right_node};
+
     end
-    % Regression Tree
-    if task_type == 0
-        
-            
-    end
+
+    out = tree;
 end
 
 function [best_attribute, best_threshold] = Choose_Attribute(features, targets, task_type)
-    % Classification Tree
-    if task_type == 1 
+       
+    if task_type == "Classification"
         
-        max_gain = 0;
-        best_attribute = 0;
-        best_threshold = -1;
-        
-        for attribute = 1:width(features) % Lopp through all the attribute
-            attribute_column = features(:,attribute);
-            attribute_values = unique(attribute_column); 
-            if numel(attribute_values) == 1
-                continue
-            end
-            thresholds = (attribute_values(1:end-1) + attribute_values(2:end)) / 2;
-            for threshold = transpose(thresholds)
-                gain = calculateGain(attribute_column, targets, threshold);
-                disp(gain)
-                if gain > max_gain
-                    max_gain = gain;
-                    best_attribute = attribute;
-                    best_threshold = threshold;
+        % calculate root entropy
+        root_positive = sum(targets == 1);
+        root_negetive = sum(targets == 0);
+        root_entropy = calculateEntropy(root_positive, root_negetive);
+
+        % store classification results
+        gains = zeros(1, width(features));
+        thresholds = zeros(1, width(features));
+
+        % for all attribute
+        for attribute_index = 1:width(features)
+
+            attribute_column = features(:, attribute_index);
+            distinct_value = unique(attribute_column);
+
+            % distinct values cannot be less than 2 otherwise cant split
+            if numel(distinct_value) ~= 1
+
+                threshold_list = zeros(1, numel(distinct_value) - 1);
+
+                % find the mean between each unique value
+                for i = 1:width(threshold_list)
+                    threshold_list(1, i) = (distinct_value(i) + distinct_value(i+1)) / 2;
+                end
+
+                % for all unique value in this attribute
+                for threshold = threshold_list
+
+                    % calcuate information gain
+                    remainder = entropyRemainder(features, targets, attribute_index, threshold);
+                    gain = root_entropy - remainder;
+
+                    if gain > gains(attribute_index)
+                        gains(attribute_index) = gain;
+                        thresholds(attribute_index) = threshold;
+                    end
                 end
             end
         end
-    end
-    % Regression Tree
-    if task_type == 0
+
+        % find best attribute
+        best_attribute = find(gains == max(gains), 1);
+        best_threshold = thresholds(best_attribute);
+
+    elseif task_type == "Regression"
+
+        % calculate root variance
+        root_variance = safeVar(targets);
+
+        % store classification results
+        reductions = zeros(1, width(features));
+        thresholds = zeros(1, width(features));
+
+        % for all attribute
+        for attribute_index = 1:width(features)
+
+            attribute_column = features(:, attribute_index);
+            distinct_value = unique(attribute_column);
+
+            % distinct values cannot be less than 2 otherwise cant split
+            if numel(distinct_value) ~= 1
+
+                threshold_list = zeros(1, numel(distinct_value) - 1);
+
+                % find the mean between each unique value
+                for i = 1:width(threshold_list)
+                    threshold_list(1, i) = (distinct_value(i) + distinct_value(i+1)) / 2;
+                end
+
+                % for all unique value in this attribute
+                for threshold = threshold_list
+                        
+                    % calcuate information gain
+                    remainder = varianceRemainder(features, targets, attribute_index, threshold);
+                    reduction = root_variance - remainder;
+
+                    if reduction > reductions(attribute_index)
+                        reductions(attribute_index) = reduction;
+                        thresholds(attribute_index) = threshold;
+                      
+                    end
+                end
+            end
+        end
+
+        % find best attribute
+        best_attribute = find(reductions == max(reductions), 1);
+        best_threshold = thresholds(best_attribute);
         
-        
     end
+
 end
 
 function I = calculateEntropy(positive, negative)
@@ -80,26 +168,55 @@ function out = safeLog2(value)
     	out = log2(value);
     end
 end
-function R = calculateRemainder(attribute, targets, threshold)
-    total = 0;
-    
-    % The gain for left kid.
-    left_weight = height(targets(attribute < threshold))/height(attribute);
-    left_positives = sum(targets(attribute < threshold));
-    left_negatives = height(targets(attribute < threshold)) - left_positives;
-    total = total + left_weight*calculateEntropy(left_positives, left_negatives);
-    
-    % The gain for right kid.
-    right_weight = height(targets(attribute >= threshold))/height(attribute);
-    right_positives = sum(targets(attribute >= threshold));
-    right_negatives = height(targets(attribute >= threshold)) - right_positives;
-    total = total + right_weight*calculateEntropy(right_positives, right_negatives);
 
-    R = total;
+function out = safeVar(value)
+    result = var(value, 1);
+    if isnan(result)
+        out = 0;
+    else
+        out = result;
+    end
 end
 
-function gain = calculateGain(attribute, targets, threshold)
-    gain = calculateEntropy( sum(targets == 1), sum(targets == 0) ) - calculateRemainder(attribute, targets, threshold);
+function out = entropyRemainder(features, targets, selected_feature, threshold)
+
+    % splited labels
+    left_child = targets(features(:, selected_feature) < threshold);
+    right_child = targets(features(:, selected_feature) >= threshold);
+
+    % left child
+    left_positive = numel(left_child(left_child == 1));
+    left_negative = numel(left_child(left_child == 0));
+    left_entropy = calculateEntropy(left_positive, left_negative);
+
+    % right_child
+    right_positive = numel(right_child(right_child == 1));
+    right_negative = numel(right_child(right_child == 0));
+    right_entropy = calculateEntropy(right_positive, right_negative);
+
+    % calculate weights
+    left_weight = numel(left_child) / numel(targets);
+    right_weight = numel(right_child) / numel(targets);
+
+    % calcuate information gain
+    out = left_weight * left_entropy + right_weight * right_entropy;
 end
 
+function out = varianceRemainder(features, targets, selected_feature, threshold)
+    
+    % splited labels
+    left_child = targets(features(:, selected_feature) < threshold);
+    right_child = targets(features(:, selected_feature) >= threshold);
 
+    % children variance
+    left_variance = safeVar(left_child);
+    right_variance = safeVar(right_child);
+
+    % calculate weights
+    left_weight = numel(left_child) / numel(targets);
+    right_weight = numel(right_child) / numel(targets);
+
+    % calcuate information gain
+    out = left_weight * left_variance + right_weight * right_variance;
+        
+end

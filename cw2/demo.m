@@ -16,7 +16,7 @@ heart_X = heart_mat(:, 1:end-1);
 heart_Y = heart_mat(:, end);
 
 fprintf("Total Instances: %d\n", height(heart_X));
-tree = shibin_dtl(heart_X, heart_Y, "Classification", heart_table.Properties.VariableNames, 100);
+tree = decision_tree_learning(heart_X, heart_Y, "Classification", heart_table.Properties.VariableNames, 2);
 
 DrawDecisionTree(tree);
 
@@ -43,13 +43,13 @@ concrete_X = concrete_mat(:, 1:end-1);
 concrete_Y = concrete_mat(:,end);
 
 fprintf("Total Instances: %d\n", height(concrete_X));
-tree = shibin_dtl(concrete_X, concrete_Y, "Regression", concrete_table.Properties.VariableNames, 3);
+tree = decision_tree_learning(concrete_X, concrete_Y, "Regression", concrete_table.Properties.VariableNames, 10);
 
 DrawDecisionTree(tree);
 
 answer = predict(tree, concrete_X);
 
-% CHANGE THIS IS ERROR BASED PERFORMANCE
-% accuracy = myAccuracy(concrete_Y, answer);
-% fprintf("Accuracy: %.2f%%\n", accuracy*100);
+rmse = myRMSE(concrete_Y, answer);
+fprintf("RMSE: %.2f\n", rmse);
+
 
