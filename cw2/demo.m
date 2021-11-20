@@ -1,4 +1,10 @@
-%% classification
+%% Decision Tree for Classification
+% decision_tree_learning() take 5 arguements, (features, targets, tree_type, feature_names, depth)
+%   features        - the input X.
+%   targets         - the label Y.
+%   tree_type       - "Classification" or "Regression"
+%   feature_names   - The features names of the input features X.
+%   depth           - The maximum level of node from the root of the decision tree
 close all
 clear
 clc
@@ -25,7 +31,7 @@ accuracy = myAccuracy(heart_Y, answer);
 fprintf("Accuracy: %.2f%%\n", accuracy*100);
 
 
-%% regression
+%% Decison Tree for Regression
 close all
 clear
 clc
