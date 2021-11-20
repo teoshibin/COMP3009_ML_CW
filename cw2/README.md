@@ -22,9 +22,9 @@
         └── cross_validation_classification.m
         └── cross_validation_regression.m
 ```
-`demo.m` show both tree are working for the datasets.
-`cross_validation_classification.m` show the evaluation of decision tree on the classification task.
-`cross_validation_regression.m` show the evalutation of decision tree on the regression task.
-`data_processing` for data validation split and normalisation   
-`decision_tree` for all decision tree related functions   
-`metrics` for accuracy, f1, confusion matrix etc.   
+`demo.m` show both tree are working for the datasets.   
+`cross_validation_classification.m` show the evaluation of decision tree on the classification task.   
+`cross_validation_regression.m` show the evalutation of decision tree on the regression task.   
+`data_processing` for data validation split and normalisation      
+`decision_tree` for all decision tree related functions     
+`metrics` for accuracy, f1, confusion matrix etc.      
