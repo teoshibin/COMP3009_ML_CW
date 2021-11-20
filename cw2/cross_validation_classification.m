@@ -1,3 +1,4 @@
+%setup workspace
 close all
 clear
 clc
@@ -7,6 +8,7 @@ addpath(genpath('./functions'));
 
 rng(1);
 
+%data loading
 heart_table = readtable('./datasets/heart_failure_clinical_records_dataset.csv');
 heart_mat = table2array(heart_table);
 heart_mat = shuffleRows(heart_mat);
@@ -62,7 +64,7 @@ for i = 1:k
 
         fprintf("\t Inner: %d TestSize: %d TrainSize: %d Accuracy: %f F1Score: %f BestD: %d\n"  ...
             ,j,height(inner_test_data),height(inner_train_data) ...
-            ,inner_accuracy,f1Score, all_best_hyper_depth(i,j));
+            ,inner_accuracy,bestF1Score, all_best_hyper_depth(i,j));
     end
     
     %tuned depth
