@@ -46,7 +46,7 @@ for i = 1:k
         bestF1Score = 0;
 
         for d = hyper_depth
-            tree = shibin_dtl(inner_train_data(:,1:end-1), inner_train_data(:,end),"Classification", ...
+            tree = decision_tree_learning(inner_train_data(:,1:end-1), inner_train_data(:,end),"Classification", ...
                 heart_table.Properties.VariableNames, d);
 
             predicted = predict(tree, inner_test_data(:, 1:end-1));
@@ -71,7 +71,7 @@ for i = 1:k
     most_d = maxCountOccur(all_best_hyper_depth(1:i,:));
 
     %train using tuned depth
-    tree = shibin_dtl(outer_train_data(:,1:end-1), outer_train_data(:,end),"Classification" ...
+    tree = decision_tree_learning(outer_train_data(:,1:end-1), outer_train_data(:,end),"Classification" ...
         , heart_table.Properties.VariableNames, most_d);
 
     predicted = predict(tree, outer_test_data(:, 1:end-1));
