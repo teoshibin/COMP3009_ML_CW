@@ -6,10 +6,10 @@ function tree = decision_tree_learning(features, targets, task_type, table)
             tree.prediction = targets(1);
         else
             [best_attribute, best_threshold] = Choose_Attribute(features, targets, task_type);
-            if best_attribute == 0
-                tree.prediction = mode(targets);
-                return
-            end
+%             if best_attribute == 0
+%                 tree.prediction = mode(targets);
+%                 return
+%             end
             
             tree.op = table.Properties.VariableNames{best_attribute};
             tree.threshold = best_threshold;
@@ -51,6 +51,7 @@ function [best_attribute, best_threshold] = Choose_Attribute(features, targets, 
             thresholds = (attribute_values(1:end-1) + attribute_values(2:end)) / 2;
             for threshold = transpose(thresholds)
                 gain = calculateGain(attribute_column, targets, threshold);
+                disp(gain)
                 if gain > max_gain
                     max_gain = gain;
                     best_attribute = attribute;
@@ -69,23 +70,30 @@ end
 function I = calculateEntropy(positive, negative)
     p1 = (positive/(positive+negative));
     p2 = (negative/(positive+negative));
-    I = -(p1 * log2(p1) + p2 * log2(p2));    
+    I = -(p1 * safeLog2(p1) + p2 * safeLog2(p2));    
 end
 
+function out = safeLog2(value)
+    if value == 0
+        out = 0;
+    else
+    	out = log2(value);
+    end
+end
 function R = calculateRemainder(attribute, targets, threshold)
     total = 0;
     
     % The gain for left kid.
-    weight = height(targets(attribute < threshold))/height(attribute);
-    positives = sum(targets(attribute < threshold));
-    negatives = height(targets(attribute < threshold)) - positives;
-    total = total + weight*calculateEntropy(positives, negatives);
+    left_weight = height(targets(attribute < threshold))/height(attribute);
+    left_positives = sum(targets(attribute < threshold));
+    left_negatives = height(targets(attribute < threshold)) - left_positives;
+    total = total + left_weight*calculateEntropy(left_positives, left_negatives);
     
     % The gain for right kid.
-    weight = height(targets(attribute >= threshold))/height(attribute);
-    positives = sum(targets(attribute >= threshold));
-    negatives = height(targets(attribute >= threshold)) - positives;
-    total = total + weight*calculateEntropy(positives, negatives);
+    right_weight = height(targets(attribute >= threshold))/height(attribute);
+    right_positives = sum(targets(attribute >= threshold));
+    right_negatives = height(targets(attribute >= threshold)) - right_positives;
+    total = total + right_weight*calculateEntropy(right_positives, right_negatives);
 
     R = total;
 end

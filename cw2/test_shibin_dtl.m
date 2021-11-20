@@ -16,7 +16,7 @@ heart_X = heart_mat(:, 1:end-1);
 heart_Y = heart_mat(:, end);
 
 fprintf("Total Instances: %d\n", height(heart_X));
-tree = shibin_dtl(heart_X, heart_Y, "Classification", heart_table.Properties.VariableNames, 2);
+tree = shibin_dtl(heart_X, heart_Y, "Classification", heart_table.Properties.VariableNames, 100);
 
 DrawDecisionTree(tree);
 

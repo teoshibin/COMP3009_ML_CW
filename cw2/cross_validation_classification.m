@@ -78,7 +78,7 @@ for i = 1:k
 
     %storing result
     accuracies(i) = myAccuracy(outer_test_data(:, end), predicted);
-
+    
     [f1Scores(i), precisions(i), recall(i)] = myFOneScore(outer_test_data(:,end),predicted);
 
     fprintf("Outer: %d TestSize: %d TrainSize: %d Accuracy: %f F1Score: %f Precision: %f Recall: %f " + ...
