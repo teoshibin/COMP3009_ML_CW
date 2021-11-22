@@ -1,8 +1,15 @@
+import warnings
+warnings.filterwarnings('ignore', category=DeprecationWarning)
+warnings.filterwarnings('ignore', category=FutureWarning)
+
 import numpy as np
 import tensorflow as tf
+tf.get_logger().setLevel('ERROR')
+
 import math
 import logging
-logging.basicConfig(level=logging.DEBUG)
+logging.basicConfig(level=logging.ERROR)
+
 import matplotlib.pyplot as plt
 
 #Network parameters
