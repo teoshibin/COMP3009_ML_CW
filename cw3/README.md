@@ -11,3 +11,11 @@
 ## Dependencies Related
 - [Requirements](REQUIREMENTS.md)
 - [Anaconda Commands Doc](https://docs.conda.io/projects/conda/en/latest/user-guide/tasks/manage-environments.html)
+
+## VScode configuration
+```batch
+    conda activate mle_tf
+    code .
+```
+navigate into your project folder, 
+select intepreter from `mle_tf` env then save this workspace
