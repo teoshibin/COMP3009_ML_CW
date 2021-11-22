@@ -5,7 +5,7 @@
 
 ## Usage
 - open `cw1` `cw2` as main directory in MALTAB
-- `cw3` as main directory in your python IDE
+- repo root as main directory in your python IDE for `cw3`
 
 ## Git
 - [CheatSheet](GITCHEATSHEET.md)
