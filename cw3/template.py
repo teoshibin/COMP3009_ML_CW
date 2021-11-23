@@ -60,26 +60,44 @@ optimizer = tf.train.GradientDescentOptimizer(learning_constant).minimize(loss_o
 #Initializing the variables
 init = tf.global_variables_initializer()
 
-batch_x1=np.loadtxt('x1.txt')
-batch_x2=np.loadtxt('x2.txt')
-batch_y1=np.loadtxt('y1.txt')
-batch_y2=np.loadtxt('y2.txt')
-label=batch_y2#+1e-50-1e-50
-batch_x=np.column_stack((batch_x1, batch_x2))
-batch_y=np.column_stack((batch_y1, batch_y2))
-batch_x_train=batch_x[:,0:599]
-batch_y_train=batch_y[:,0:599]
-batch_x_test=batch_x[:,600:1000]
-batch_y_test=batch_y[:,600:1000]
-label_train=label[0:599]
-label_test=label[600:1000]
+# batch_x1=np.loadtxt('x1.txt')
+# batch_x2=np.loadtxt('x2.txt')
+# batch_y1=np.loadtxt('y1.txt')
+# batch_y2=np.loadtxt('y2.txt')
+# label=batch_y2#+1e-50-1e-50
+# batch_x=np.column_stack((batch_x1, batch_x2))
+# batch_y=np.column_stack((batch_y1, batch_y2))
+# batch_x_train=batch_x[:,0:599]
+# batch_y_train=batch_y[:,0:599]
+# batch_x_test=batch_x[:,600:1000]
+# batch_y_test=batch_y[:,600:1000]
+# label_train=label[0:599]
+# label_test=label[600:1000]
+
+# training xor and xnor
+batch_x_train = np.array([[0, 0],
+                         [0, 1],
+                         [1, 0],
+                         [1, 1]])
+
+batch_x = batch_x_train
+
+batch_y_train = np.array([[1, 0],
+                         [0, 1],
+                         [0, 1],
+                         [1, 0]])
+
+label = np.array([[0],
+                 [1],
+                 [1],
+                 [0]])
+
 
 with tf.Session() as sess:
     sess.run(init)
     #Training epoch
     for epoch in range(number_epochs):
-        sess.run(optimizer, feed_dict={X: batch_x_train, Y:
-        batch_y_train})
+        sess.run(optimizer, feed_dict={X: batch_x_train, Y: batch_y_train})
         #Display the epoch
         if epoch % 100 == 0:
             print("Epoch:", '%d' % (epoch))
@@ -87,10 +105,10 @@ with tf.Session() as sess:
     # Test model
     pred = (neural_network) # Apply softmax to logits
     accuracy=tf.keras.losses.MSE(pred,Y)
-    print("Accuracy:", accuracy.eval({X: batch_x_train, Y: batch_y_train}))
+    print("\nLoss:\n", accuracy.eval({X: batch_x_train, Y: batch_y_train}))
     
     #tf.keras.evaluate(pred,batch_x)
-    print("Prediction:", pred.eval({X: batch_x_train}))
+    print("\nPrediction:\n", pred.eval({X: batch_x_train}).round())
     output=neural_network.eval({X: batch_x_train})
     plt.plot(batch_y_train[0:10], 'ro', output[0:10], 'bo')
     plt.ylabel('some numbers')
