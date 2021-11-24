@@ -1,5 +1,7 @@
 # %%
 import warnings
+
+from numpy.lib.function_base import average
 warnings.filterwarnings('ignore', category=DeprecationWarning)
 warnings.filterwarnings('ignore', category=FutureWarning)
 
@@ -27,7 +29,7 @@ n_output = 2
 
 #Learning parameters
 learning_constant = 0.2
-number_epochs = 1000
+number_epochs = 20000
 batch_size = 1000
 
 #Defining the input and the output
@@ -68,6 +70,19 @@ def loadHeartFailureDataset():
     # print(y_data)
     return x_data, y_data
 
+def minMaxNorm(data):
+    spacing = 5
+    pct_min = np.percentile(data, spacing, axis=0)
+    pct_max = np.percentile(data, 100 - spacing, axis=0)
+    norm_data = np.zeros(data.shape)
+    for i in range(len(data[0])):
+        norm_data[:, i] = (data[:,i] - pct_min[i]) / (pct_max[i] - pct_min[i])
+
+    norm_data[norm_data > 1] = 1
+    norm_data[norm_data < 0] = 0
+
+    return norm_data
+
 def splitLabel(data, number_of_labels):
     number_of_columns = len(data[0])
 
@@ -99,41 +114,62 @@ init = tf.global_variables_initializer()
 
 # Load dataset
 x_data, y_data = loadHeartFailureDataset()
+x_data = minMaxNorm(x_data)
+
 number_of_labels = len(y_data[0])
 
-train_x = x_data
-train_y = y_data
+# train_x = x_data
+# train_y = y_data
 
-# data = mergeLabel(x_data, y_data)
-# train_set, test_set = validationSplit(data, 0.8)
-# train_x, train_y = splitLabel(train_set, number_of_labels)
-# test_x, test_y = splitLabel(test_set, number_of_labels)
+data = mergeLabel(x_data, y_data)
+train_set, test_set = validationSplit(data, 0.5)
+train_x, train_y = splitLabel(train_set, number_of_labels)
+test_x, test_y = splitLabel(test_set, number_of_labels)
 
-print("\nTrain X:\n", train_x)
-print("\nTrain Y:\n", train_y)
+# print("\nTrain X:\n", train_x)
+# print("\nTrain Y:\n", train_y)
 # print("\nTest X:\n", test_x)
 # print("\nTest Y:\n", test_y)
 
 with tf.Session() as sess:
     sess.run(init)
+
+
     #Training epoch
+    average_losses = np.zeros(int(number_epochs / 500))
     for epoch in range(number_epochs):
         sess.run(optimizer, feed_dict={X: train_x, Y: train_y})
+        
         #Display the epoch
         if epoch % 100 == 0:
             print("Epoch:", '%d' % (epoch))
 
-    # Test model
-    pred = tf.nn.softmax(neural_network) # Apply softmax to logits
-    accuracy = tf.keras.losses.MSE(pred,Y)
-    print("\nLoss:\n", accuracy.eval({X: train_x, Y: train_y}))
+        if epoch % 500 == 0:
+            # Test model
+            pred = (neural_network) # Apply softmax to logits
+            mse_loss_obj = tf.keras.losses.MSE(pred,Y)
+            loss = mse_loss_obj.eval({X: train_x, Y: train_y})
+            average_losses[int(epoch / 500)] = np.mean(loss)
     
+    # plot overfitting loss over epoch
+    plt.plot(average_losses)
+    plt.ylabel("MSE Loss")
+    plt.xlabel("Epoch / 500")
+    plt.show()
+
     #tf.keras.evaluate(pred,batch_x)
-    print("\nPrediction:\n", pred.eval({X: train_x}))
-    output=neural_network.eval({X: train_x})
-    # plt.plot(train_y[0:10], 'ro', output[0:10], 'bo')
-    # plt.ylabel('some numbers')
-    # plt.show()
+    # output = neural_network.eval({X: test_x})
+    # print("\nPrediction:\n", output[0:10])
+    # print("\nActual:\n", test_y[0:10])
+
+    # plot scatter label and prediction
+    output = neural_network.eval({X: train_x})
+    for i in range(len(train_y[0])):
+        plt.figure(i)
+        plt.plot(train_y[:, i], 'ro', output[:, i], 'bo', np.full((len(train_y), 1), 0.5))
+        plt.ylabel(f"Label {i}")
+        plt.xlabel('instances')
+    plt.show()
 
     # estimated_class=tf.argmax(pred, 1)#+1e-50-1e-50
     # correct_prediction1 = tf.equal(tf.argmax(pred, 1),label)
