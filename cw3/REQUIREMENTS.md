@@ -14,12 +14,12 @@
 
 5. Install explicitly specified versions of packages
     ```batch
-    conda install -c conda-forge numpy=1.17.2
-    conda install -c conda-forge tensorflow=1.13.1
-    conda install -c conda-forge matplotlib=3.1.1
-    conda install -c conda-forge scipy=1.3.1
+    conda install -c conda-forge numpy=1.20.3
+    conda install -c conda-forge tensorflow=1.14.0
+    conda install -c conda-forge matplotlib=3.5.0
+    conda install -c conda-forge scipy=1.7.3
     ```
     or one liner for window batch
     ```batch
-    conda install -y -c conda-forge numpy=1.17.2 & conda install -y -c conda-forge tensorflow=1.13.1 & conda install -y -c conda-forge matplotlib=3.1.1 & conda install -y -c conda-forge scipy=1.3.1
+    conda install -c conda-forge numpy=1.20.3 tensorflow=1.14.0 matplotlib=3.5.0 scipy=1.7.3
     ```
