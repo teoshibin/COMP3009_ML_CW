@@ -4,15 +4,9 @@
 
 	// List of extensions which should be recommended for users of this workspace.
 	"recommendations": [
-		"albert.TabOut",
-		"azemoh.one-monokai",
-		"CoenraadS.bracket-pair-colorizer-2",
-		"devine-davies.make-hidden",
+
+		// essential
 		"donjayamanne.python-environment-manager",
-		"Equinusocio.vsc-community-material-theme",
-		"Equinusocio.vsc-material-theme",
-		"equinusocio.vsc-material-theme-icons",
-		"ExodiusStudios.comment-anchors",
 		"felipecaputo.git-project-manager",
 		"mhutchie.git-graph",
 		"ms-python.python",
@@ -23,13 +17,24 @@
 		"ms-vsliveshare.vsliveshare",
 		"ms-vsliveshare.vsliveshare-audio",
 		"ms-vsliveshare.vsliveshare-pack",
+		"tomsaunders-code.workspace-explorer",
+		"VisualStudioExptTeam.vscodeintellicode",
+		
+		// quality of life
+		"albert.TabOut",
+		"azemoh.one-monokai",
+		"CoenraadS.bracket-pair-colorizer-2",
+		"devine-davies.make-hidden",
+		"Equinusocio.vsc-community-material-theme",
+		"Equinusocio.vsc-material-theme",
+		"ExodiusStudios.comment-anchors",
+		"equinusocio.vsc-material-theme-icons",
 		"PKief.material-icon-theme",
 		"s3gf4ult.monokai-vibrant",
-		"TabNine.tabnine-vscode",
-		"tomsaunders-code.workspace-explorer",
 		"usernamehw.errorlens",
-		"VisualStudioExptTeam.vscodeintellicode",
-		"vscode-icons-team.vscode-icons"
+		"vscode-icons-team.vscode-icons",
+		"grapecity.gc-excelviewer",
+		"mechatroner.rainbow-csv"
 	],
 	// List of extensions recommended by VS Code that should not be recommended for users of this workspace.
 	"unwantedRecommendations": [
