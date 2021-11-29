@@ -113,6 +113,15 @@ def shuffleRow(data):
     np.random.shuffle(data)
     return data
 
+def f1Score(predicted, actual):
+    TP = tf.count_nonzero(predicted * actual)
+    TN = tf.count_nonzero((predicted - 1) * (actual - 1))
+    FP = tf.count_nonzero(predicted * (actual - 1))
+    FN = tf.count_nonzero((predicted - 1) * actual)
+    precision = TP / (TP + FP)
+    recall = TP / (TP + FN)
+    f1 = 2 * precision * recall / (precision + recall)
+    return f1
 # %%
 
 #Create model
@@ -177,7 +186,7 @@ with tf.Session() as sess:
     # print("\nActual:\n", test_y[0:10])
 
     # plot scatter label and prediction
-    output = neural_network.eval({X: test_x})
+    
     """
     for i in range(len(train_y[0])):
         plt.figure(i)
@@ -186,27 +195,19 @@ with tf.Session() as sess:
         plt.xlabel('instances')
     plt.show()
     """
+    output = neural_network.eval({X: test_x})
     estimated_class=tf.argmax(pred, 1)#+1e-50-1e-50
-    print(unOneHotEncoding(test_y,1))
+   
     correct_prediction1 = tf.equal(tf.argmax(output,1),unOneHotEncoding(test_y,1))
     accuracy1 = tf.reduce_mean(tf.cast(correct_prediction1, tf.float32))
-    #print(tf.argmax(pred,1).eval())
-    #print(sess.run(tf.argmax(train_y,1)))
-    #f1score = tf.contrib.metrics.f1_score(unOneHotEncoding(test_y,1),tf.argmax(output,1))
     actual = unOneHotEncoding(test_y,1)
     predicted = tf.argmax(output,1)
-    TP = tf.count_nonzero(predicted * actual)
-    TN = tf.count_nonzero((predicted - 1) * (actual - 1))
-    FP = tf.count_nonzero(predicted * (actual - 1))
-    FN = tf.count_nonzero((predicted - 1) * actual)
-    precision = TP / (TP + FP)
-    recall = TP / (TP + FN)
-    f1 = 2 * precision * recall / (precision + recall)
-    #print(f1)
+    f1 = f1Score(predicted,actual)
+ 
+    print(unOneHotEncoding(test_y,1))
+    print(tf.keras.backend.get_value(tf.argmax(output,1)))
     print(tf.keras.backend.get_value(f1))
     print(tf.keras.backend.get_value(accuracy1))
-    print(tf.keras.backend.get_value(tf.argmax(output,1)))
    
-    #print(accuracy1)
 
 
