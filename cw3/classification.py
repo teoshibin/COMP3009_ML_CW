@@ -64,11 +64,20 @@ def loadHeartFailureDataset():
     x_data = data[:, 0:-1]
     y_data = data[:, -1]
     y_data = y_data.astype('int32')
+    #no_data = y_data
     y_data = np.identity(2)[y_data] # one hot encoding
 
     # print(x_data)
     # print(y_data)
     return x_data, y_data
+
+def oneHotEncoding(y_data):
+    y_data = np.identity(2)[y_data]
+    return y_data
+
+def unOneHotEncoding(y_data, axis):
+    y_data = np.argmax(y_data, axis)
+    return y_data
 
 def minMaxNorm(data):
     spacing = 5
@@ -94,10 +103,15 @@ def mergeLabel(x_data, y_data):
     return np.column_stack((x_data, y_data))
 
 def validationSplit(data, percentage):
-    portion = round(len(data)*percentage)
+    portion = round(data.shape[0]*percentage)
     train = data[0:portion]
-    test = data[portion:len(data)]
+    test = data[portion:data.shape[0]]
     return train, test
+
+def shuffleRow(data):
+    np.random.seed(2)
+    np.random.shuffle(data)
+    return data
 
 # %%
 
@@ -115,13 +129,13 @@ init = tf.global_variables_initializer()
 # Load dataset
 x_data, y_data = loadHeartFailureDataset()
 x_data = minMaxNorm(x_data)
-
 number_of_labels = len(y_data[0])
 
 # train_x = x_data
 # train_y = y_data
 
 data = mergeLabel(x_data, y_data)
+data = shuffleRow(data)
 train_set, test_set = validationSplit(data, 0.5)
 train_x, train_y = splitLabel(train_set, number_of_labels)
 test_x, test_y = splitLabel(test_set, number_of_labels)
@@ -152,10 +166,10 @@ with tf.Session() as sess:
             average_losses[int(epoch / 500)] = np.mean(loss)
     
     # plot overfitting loss over epoch
-    plt.plot(average_losses)
+    """ plt.plot(average_losses)
     plt.ylabel("MSE Loss")
     plt.xlabel("Epoch / 500")
-    plt.show()
+    plt.show() """
 
     #tf.keras.evaluate(pred,batch_x)
     # output = neural_network.eval({X: test_x})
@@ -163,18 +177,36 @@ with tf.Session() as sess:
     # print("\nActual:\n", test_y[0:10])
 
     # plot scatter label and prediction
-    output = neural_network.eval({X: train_x})
+    output = neural_network.eval({X: test_x})
+    """
     for i in range(len(train_y[0])):
         plt.figure(i)
         plt.plot(train_y[:, i], 'ro', output[:, i], 'bo', np.full((len(train_y), 1), 0.5))
         plt.ylabel(f"Label {i}")
         plt.xlabel('instances')
     plt.show()
-
-    # estimated_class=tf.argmax(pred, 1)#+1e-50-1e-50
-    # correct_prediction1 = tf.equal(tf.argmax(pred, 1),label)
-    # accuracy1 = tf.reduce_mean(tf.cast(correct_prediction1, tf.float32))
-    
-    # print(accuracy1.eval({X: batch_x}))
+    """
+    estimated_class=tf.argmax(pred, 1)#+1e-50-1e-50
+    print(unOneHotEncoding(test_y,1))
+    correct_prediction1 = tf.equal(tf.argmax(output,1),unOneHotEncoding(test_y,1))
+    accuracy1 = tf.reduce_mean(tf.cast(correct_prediction1, tf.float32))
+    #print(tf.argmax(pred,1).eval())
+    #print(sess.run(tf.argmax(train_y,1)))
+    #f1score = tf.contrib.metrics.f1_score(unOneHotEncoding(test_y,1),tf.argmax(output,1))
+    actual = unOneHotEncoding(test_y,1)
+    predicted = tf.argmax(output,1)
+    TP = tf.count_nonzero(predicted * actual)
+    TN = tf.count_nonzero((predicted - 1) * (actual - 1))
+    FP = tf.count_nonzero(predicted * (actual - 1))
+    FN = tf.count_nonzero((predicted - 1) * actual)
+    precision = TP / (TP + FP)
+    recall = TP / (TP + FN)
+    f1 = 2 * precision * recall / (precision + recall)
+    #print(f1)
+    print(tf.keras.backend.get_value(f1))
+    print(tf.keras.backend.get_value(accuracy1))
+    print(tf.keras.backend.get_value(tf.argmax(output,1)))
+   
+    #print(accuracy1)
 
 
