@@ -2,6 +2,7 @@
 import warnings
 
 from numpy.lib.function_base import average
+from tensorflow.python.ops.gen_control_flow_ops import switch
 warnings.filterwarnings('ignore', category=DeprecationWarning)
 warnings.filterwarnings('ignore', category=FutureWarning)
 
@@ -17,8 +18,12 @@ import matplotlib.pyplot as plt
 
 import os 
 # import pandas
+import time
+
+start = time.time()
 
 # %%
+tf.set_random_seed(69)
 
 #Network parameters
 n_input = 12
@@ -36,22 +41,46 @@ batch_size = 1000
 X = tf.placeholder("float", [None, n_input])
 Y = tf.placeholder("float", [None, n_output])
 
-#DEFINING WEIGHTS AND BIASES
-b1 = tf.Variable(tf.random_normal([n_hidden1]))
-b2 = tf.Variable(tf.random_normal([n_hidden2]))
-b3 = tf.Variable(tf.random_normal([n_hidden3]))
-b4 = tf.Variable(tf.random_normal([n_output]))
-w1 = tf.Variable(tf.random_normal([n_input, n_hidden1]))
-w2 = tf.Variable(tf.random_normal([n_hidden1, n_hidden2]))
-w3 = tf.Variable(tf.random_normal([n_hidden2, n_hidden3]))
-w4 = tf.Variable(tf.random_normal([n_hidden3, n_output]))
+def one_layer_perceptron(input_x, input_size, output_size, activation_type):
 
-def multilayer_perceptron(input_d):
-    layer_1 = tf.nn.sigmoid(tf.add(tf.matmul(input_d, w1), b1))
-    layer_2 = tf.nn.sigmoid(tf.add(tf.matmul(layer_1, w2), b2))
-    layer_3 = tf.nn.sigmoid(tf.add(tf.matmul(layer_2, w3), b3))
-    out_layer = tf.nn.softmax(tf.add(tf.matmul(layer_3, w4),b4))
+    b = tf.Variable(tf.random_normal([output_size]))
+    w = tf.Variable(tf.random_normal([input_size, output_size]))
+
+    if activation_type == "sigmoid":
+        layer = tf.nn.sigmoid(tf.add(tf.matmul(input_x, w), b))
+
+    elif activation_type == "relu":
+        layer = tf.nn.relu(tf.add(tf.matmul(input_x, w), b))
+
+    elif activation_type == "softmax":
+        layer = tf.nn.softmax(tf.add(tf.matmul(input_x, w), b))
+
+    return layer
+
+def multilayer_perceptron(input_x):
+
+    input_layer = one_layer_perceptron(input_x, 12, 24, "sigmoid")
+    layer_1 = one_layer_perceptron(input_layer, 24, 12, "sigmoid")
+    layer_2 = one_layer_perceptron(layer_1, 12, 6, "sigmoid")
+    out_layer = one_layer_perceptron(layer_2, 6, 2, "softmax")
     return out_layer
+
+# def multilayer_perceptron(input_d):
+#     #DEFINING WEIGHTS AND BIASES
+#     b1 = tf.Variable(tf.random_normal([n_hidden1]))
+#     b2 = tf.Variable(tf.random_normal([n_hidden2]))
+#     b3 = tf.Variable(tf.random_normal([n_hidden3]))
+#     b4 = tf.Variable(tf.random_normal([n_output]))
+#     w1 = tf.Variable(tf.random_normal([n_input, n_hidden1]))
+#     w2 = tf.Variable(tf.random_normal([n_hidden1, n_hidden2]))
+#     w3 = tf.Variable(tf.random_normal([n_hidden2, n_hidden3]))
+#     w4 = tf.Variable(tf.random_normal([n_hidden3, n_output]))
+
+#     layer_1 = tf.nn.sigmoid(tf.add(tf.matmul(input_d, w1), b1))
+#     layer_2 = tf.nn.sigmoid(tf.add(tf.matmul(layer_1, w2), b2))
+#     layer_3 = tf.nn.sigmoid(tf.add(tf.matmul(layer_2, w3), b3))
+#     out_layer = tf.nn.softmax(tf.add(tf.matmul(layer_3, w4),b4))
+#     return out_layer
 
 
 # %%
@@ -209,5 +238,6 @@ with tf.Session() as sess:
     print(tf.keras.backend.get_value(f1))
     print(tf.keras.backend.get_value(accuracy1))
    
-
+    end = time.time()
+    print("Total Time Elapsed: ", end - start)
 
