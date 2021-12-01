@@ -33,8 +33,8 @@ n_hidden3 = 6
 n_output = 2
 
 #Learning parameters
-learning_constant = 0.2
-number_epochs = 20000
+learning_constant = 0.05
+number_epochs = 500
 batch_size = 1000
 
 #Defining the input and the output
@@ -152,13 +152,22 @@ def f1Score(predicted, actual):
     f1 = 2 * precision * recall / (precision + recall)
     return f1
 # %%
-
 #Create model
 neural_network = multilayer_perceptron(X)
-
 #Define loss and optimizer
-loss_op = tf.reduce_mean(tf.math.squared_difference(neural_network,Y))
-#loss_op = tf.reduce_mean(tf.nn.softmax_cross_entropy_with_logits(logits=neural_network,labels=Y))
+# loss_op = tf.reduce_mean(tf.math.squared_difference(neural_network,Y))
+# loss_op = tf.keras.losses.mean_squared_logarithmic_error(neural_network, Y)
+# loss_op = tf.keras.losses.categorical_crossentropy(Y, neural_network)
+# loss_op = tf.keras.losses.binary_crossentropy(Y, neural_network)
+loss_op = tf.keras.losses.mean_squared_logarithmic_error(Y, neural_network)
+
+""" 
+    different loss require different lr and epoch
+    lower lr = more exploitation and require more epoch but overfit
+    higher lr = more exploration and requre less epoch but hard to converge
+"""
+
+# loss_op = tf.reduce_mean(tf.nn.softmax_cross_entropy_with_logits(logits=neural_network,labels=Y))
 optimizer = tf.train.GradientDescentOptimizer(learning_constant).minimize(loss_op)
 
 #Initializing the variables
@@ -187,27 +196,34 @@ with tf.Session() as sess:
     sess.run(init)
 
 
+
     #Training epoch
     average_losses = np.zeros(int(number_epochs / 500))
     for epoch in range(number_epochs):
         sess.run(optimizer, feed_dict={X: train_x, Y: train_y})
         
         #Display the epoch
-        if epoch % 100 == 0:
-            print("Epoch:", '%d' % (epoch))
+        if epoch % 2 == 0:
+            output = neural_network.eval({X: test_x})
+            actual = unOneHotEncoding(test_y,1)
+            predicted = tf.argmax(output,1)
+            f1 = f1Score(predicted,actual)
+            print("Epoch: %d F1: %.4f" %(epoch, tf.keras.backend.get_value(f1)))
+            # myloss = tf.keras.losses.categorical_crossentropy(test_y, output)
+            # print(tf.keras.backend.get_value(myloss))
 
-        if epoch % 500 == 0:
-            # Test model
-            pred = (neural_network) # Apply softmax to logits
-            mse_loss_obj = tf.keras.losses.MSE(pred,Y)
-            loss = mse_loss_obj.eval({X: train_x, Y: train_y})
-            average_losses[int(epoch / 500)] = np.mean(loss)
+        # if epoch % 500 == 0:
+        #     # Test model
+        #     pred = (neural_network) # Apply softmax to logits
+        #     mse_loss_obj = tf.keras.losses.MSE(pred,Y)
+        #     loss = mse_loss_obj.eval({X: train_x, Y: train_y})
+        #     average_losses[int(epoch / 500)] = np.mean(loss)
     
     # plot overfitting loss over epoch
-    """ plt.plot(average_losses)
-    plt.ylabel("MSE Loss")
-    plt.xlabel("Epoch / 500")
-    plt.show() """
+    # plt.plot(average_losses)
+    # plt.ylabel("MSE Loss")
+    # plt.xlabel("Epoch / 500")
+    # plt.show()
 
     #tf.keras.evaluate(pred,batch_x)
     # output = neural_network.eval({X: test_x})
@@ -215,26 +231,27 @@ with tf.Session() as sess:
     # print("\nActual:\n", test_y[0:10])
 
     # plot scatter label and prediction
-    
-    """
-    for i in range(len(train_y[0])):
-        plt.figure(i)
-        plt.plot(train_y[:, i], 'ro', output[:, i], 'bo', np.full((len(train_y), 1), 0.5))
-        plt.ylabel(f"Label {i}")
-        plt.xlabel('instances')
-    plt.show()
-    """
+        
+    # for i in range(len(train_y[0])):
+    #     plt.figure(i)
+    #     plt.plot(train_y[:, i], 'ro', output[:, i], 'bo', np.full((len(train_y), 1), 0.5))
+    #     plt.ylabel(f"Label {i}")
+    #     plt.xlabel('instances')
+    # plt.show()
+   
     output = neural_network.eval({X: test_x})
-    estimated_class=tf.argmax(pred, 1)#+1e-50-1e-50
+    # estimated_class=tf.argmax(pred, 1)#+1e-50-1e-50
    
     correct_prediction1 = tf.equal(tf.argmax(output,1),unOneHotEncoding(test_y,1))
     accuracy1 = tf.reduce_mean(tf.cast(correct_prediction1, tf.float32))
+
     actual = unOneHotEncoding(test_y,1)
     predicted = tf.argmax(output,1)
     f1 = f1Score(predicted,actual)
  
-    print(unOneHotEncoding(test_y,1))
-    print(tf.keras.backend.get_value(tf.argmax(output,1)))
+    
+    # print(unOneHotEncoding(test_y,1))
+    # print(tf.keras.backend.get_value(tf.argmax(output,1)))
     print(tf.keras.backend.get_value(f1))
     print(tf.keras.backend.get_value(accuracy1))
    
