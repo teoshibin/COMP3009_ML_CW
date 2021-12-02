@@ -75,6 +75,7 @@ with tf.Session() as sess:
 
     # storage
     all_f1 =np.zeros(int(max_epoch / epoch_per_eval))
+    all_acc =np.zeros(int(max_epoch / epoch_per_eval))
     test_loss =np.zeros(int(max_epoch / epoch_per_eval))
     train_loss =np.zeros(int(max_epoch / epoch_per_eval))
 
@@ -85,17 +86,22 @@ with tf.Session() as sess:
         #Display the epoch
         if epoch % epoch_per_eval == 0:
 
+            modIndex = int(epoch / epoch_per_eval)
+
             output = neural_network.eval({X: test_x})
             actual = tf.argmax(test_y,1)
             predicted = tf.argmax(output,1)
             f1 = round(tf.keras.backend.get_value(f1Score(predicted,actual)), 6)
             f1 = 0 if np.isnan(f1) else f1
-            all_f1[int(epoch / epoch_per_eval)] = f1
+            all_f1[modIndex] = f1
+
+            correct_prediction = tf.equal(tf.argmax(output,1),tf.argmax(test_y,1))
+            all_acc[modIndex] = tf.keras.backend.get_value(tf.reduce_mean(tf.cast(correct_prediction, tf.float32)))
 
             loss1 = np.mean(tf.keras.backend.get_value(loss_op.eval({X: test_x, Y: test_y})))
-            test_loss[int(epoch / epoch_per_eval)] = loss1
+            test_loss[modIndex] = loss1
             loss2 = loss_op.eval({X: train_x, Y: train_y})
-            train_loss[int(epoch / epoch_per_eval)] = np.mean(loss2)
+            train_loss[modIndex] = np.mean(loss2)
 
             # termination criteria
             if loss1 < best_loss:
@@ -141,17 +147,17 @@ with tf.Session() as sess:
     plt.figure("fig1")
     plt.plot(test_loss)
     plt.plot(train_loss)
-    plt.ylabel("Binary Cross Entropy Loss")
-    plt.xlabel(f"Epoch / {epoch_per_eval}")
-
     plt.axvline(int(best_epoch / epoch_per_eval), lineStyle='--', color='r')
-
+    plt.xlabel(f"Epoch / {epoch_per_eval}")
+    plt.ylabel("Binary Cross Entropy Loss")
     plt.legend(["Test Loss", "Train Loss", "Selected Model"])
 
     plt.figure("fig2")
     plt.plot(all_f1)
-    plt.ylabel("F1 Score")
-    plt.xlabel(f"Epoch / {epoch_per_eval}")
+    plt.plot(all_acc)
     plt.axvline(int(best_epoch / epoch_per_eval), lineStyle='--', color='r')
-    
+    plt.xlabel(f"Epoch / {epoch_per_eval}")
+    plt.ylabel("Metric Score")    
+    plt.legend(["F1 Score", "Accuracy", "Selected Model"])
+
     plt.show()
