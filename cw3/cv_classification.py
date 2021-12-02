@@ -1,3 +1,7 @@
+# Result
+# CAUTION THIS TOOK 11H 30M TO COMPLETE
+# FinalAccuracy: 0.799195  FinalF1: 0.700898  FinalLearning: 0.01
+
 import os
 import numpy as np
 import tensorflow as tf
@@ -31,27 +35,6 @@ def multilayer_perceptron(input_x):
     layer_2 = one_layer_perceptron(layer_1, 12, 6, "sigmoid")
     out_layer = one_layer_perceptron(layer_2, 6, 2, "softmax")
     return out_layer
-
-# #Defining the input and the output
-# X = tf.placeholder("float", [None, 12])
-# Y = tf.placeholder("float", [None, 2])
-
-# #DEFINING WEIGHTS AND BIASES
-# b1 = tf.Variable(tf.random_normal([24]))
-# b2 = tf.Variable(tf.random_normal([12]))
-# b3 = tf.Variable(tf.random_normal([6]))
-# b4 = tf.Variable(tf.random_normal([2]))
-# w1 = tf.Variable(tf.random_normal([12, 24]))
-# w2 = tf.Variable(tf.random_normal([24, 12]))
-# w3 = tf.Variable(tf.random_normal([12, 6]))
-# w4 = tf.Variable(tf.random_normal([6, 2]))
-
-# def multilayer_perceptron(input_d):
-#     layer_1 = tf.nn.sigmoid(tf.add(tf.matmul(input_d, w1), b1)) #f(X * W1 + b1)
-#     layer_2 = tf.nn.sigmoid(tf.add(tf.matmul(layer_1, w2), b2))
-#     layer_3 = tf.nn.sigmoid(tf.add(tf.matmul(layer_2, w3), b3))
-#     out_layer = tf.nn.softmax(tf.add(tf.matmul(layer_3, w4),b4))
-#     return out_layer
 
 def loadHeartFailureDataset():    #just get the data
 
@@ -169,10 +152,9 @@ loss_op = tf.keras.losses.binary_crossentropy(Y,neural_network)
 
 #Define optimizer
 optimizer = []
-learning_rate = 0.01
-for i in range(5):
-    optimizer.append(tf.train.AdamOptimizer(learning_rate).minimize(loss_op))
-    learning_rate = learning_rate + 0.01
+learning_rates = np.arange(0.01, 0.06, 0.01)
+for lr in learning_rates:
+    optimizer.append(tf.train.AdamOptimizer(lr).minimize(loss_op))
 
 #Initializing the variables
 init = tf.global_variables_initializer()
@@ -251,7 +233,8 @@ for i in range(k):
                         output = neural_network.eval({X: inner_test_X})
                         actual = unOneHotEncoding(inner_test_Y,1)
                         predicted = tf.argmax(output,1)
-                        f1 = round(tf.keras.backend.get_value(f1Score(predicted,actual)), 4)
+                        f1 = round(tf.keras.backend.get_value(f1Score(predicted,actual)), 6)
+                        f1 = 0 if np.isnan(f1) else f1
                         # allf1[int(epoch / dispEpochEveryN)] = f1
 
                         # termination criteria
@@ -266,18 +249,19 @@ for i in range(k):
                             else:
                                 break
                         
-                        print(f"\t\tEpoch: {epoch} " 
-                              f" F1: {f1:.6f} "
-                              f" Tolerance: {current_tolerence} "
+                        print(f"\tEpoch: {epoch}\t" 
+                              f"F1: {f1:.6f}\t"
+                              f"Tolerance: {current_tolerence} "
                                ) 
                         
-                print(f"\t Epoch: {best_epoch}" 
-                      f" Best_F1: {best_f1:.6f} "
-                       )
+                print(f"\tSelected Epoch: {best_epoch}\t" 
+                        f"F1: {best_f1:.6f} "
+                        )
                 
                 output = best_model.eval({X: inner_test_X})
                 correct_prediction = tf.equal(tf.argmax(output,1),tf.argmax(inner_test_Y,1))
                 f1 = tf.keras.backend.get_value(f1Score(tf.argmax(output,1), tf.argmax(inner_test_Y,1)))
+                f1 = 0 if np.isnan(f1) else f1
                 accuracy = tf.keras.backend.get_value(tf.reduce_mean(tf.cast(correct_prediction, tf.float32)))
                 
                 # incre = incre + 1
@@ -286,13 +270,14 @@ for i in range(k):
                     all_best_hyper_learning[i,j] = hyper_learning_loop
                     bestF1Score = f1
                         
-                print(f"\t Inner: {j} "      
-                      f" Testsize: {inner_test_data.shape[0]} " 
-                      f" Trainsize: {inner_train_data.shape[0]} " 
-                      f" Accuracy: {accuracy:.6f} " 
-                      f" F1Score: {bestF1Score:.6f} " 
-                      f" BestLearning: {all_best_hyper_learning[i,j]} "
-                       )
+                print(f"\tInner: {j}\t"      
+                        f"Current Lr: {learning_rates[hyper_learning_loop]}\t" 
+                        f"Testsize: {inner_test_data.shape[0]}\t" 
+                        f"Trainsize: {inner_train_data.shape[0]}\t" 
+                        f"Acc: {accuracy:.6f}\t" 
+                        f"F1: {bestF1Score:.6f}\t" 
+                        f"Best Lr: {learning_rates[all_best_hyper_learning[i,j]]} "
+                        )
                 
                 sess.close()
                     
@@ -313,7 +298,7 @@ for i in range(k):
               f" Trainsize: {outer_train_X.shape[0]} "
               f" Accuracy: {accuracies[0][i]:.6f} "
               f" F1Score: {f1scores[0][i]:.6f} "
-              f" MostBestLearning: {most_learning} "
+              f" MostBestLearning: {learning_rates[most_learning]} "
                )
     
 mean_accuracy = findMean(accuracies)
@@ -321,6 +306,9 @@ mean_f1score = findMean(f1scores)
 best_hyper_learning = maxCountOccur(all_best_hyper_learning)
 print(f"FinalAccuracy: {mean_accuracy:.6f} "
       f" FinalF1: {mean_f1score:.6f} " 
-      f" FinalLearning: {best_hyper_learning} "
+      f" FinalLearning: {learning_rates[best_hyper_learning]} "
        )
-         
+
+# Result
+# CAUTION THIS TOOK 11H 30M TO COMPLETE
+# FinalAccuracy: 0.799195  FinalF1: 0.700898  FinalLearning: 0.01
