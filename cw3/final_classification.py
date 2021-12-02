@@ -12,7 +12,7 @@ import time
 start = time.time()
 tf.set_random_seed(69)
 
-learning_rate = 0.01
+learning_rate = 0.006
 max_epoch = 200
 epoch_per_eval = 1
 terminate_tolerence = -1
@@ -62,17 +62,21 @@ test_x, test_y = splitLabel(test_set, number_of_labels)
 with tf.Session() as sess:
     sess.run(init)
 
+    saver=tf.train.Saver()
+    save_path='death_event_model/'
+
     # average_losses = np.zeros(int(max_epoch / 10))
 
     # termination stuff
     current_tolerence = terminate_tolerence
-    best_f1 = 0
+    best_loss = np.Inf
     best_model = neural_network
     best_epoch = 0
 
     # storage
     all_f1 =np.zeros(int(max_epoch / epoch_per_eval))
-    all_loss =np.zeros(int(max_epoch / epoch_per_eval))
+    test_loss =np.zeros(int(max_epoch / epoch_per_eval))
+    train_loss =np.zeros(int(max_epoch / epoch_per_eval))
 
     #Training epoch
     for epoch in range(max_epoch):
@@ -88,15 +92,17 @@ with tf.Session() as sess:
             f1 = 0 if np.isnan(f1) else f1
             all_f1[int(epoch / epoch_per_eval)] = f1
 
-            loss = loss_op.eval({X: test_x, Y: test_y})
-            all_loss[int(epoch / epoch_per_eval)] = np.mean(loss)
+            loss1 = np.mean(tf.keras.backend.get_value(loss_op.eval({X: test_x, Y: test_y})))
+            test_loss[int(epoch / epoch_per_eval)] = loss1
+            loss2 = loss_op.eval({X: train_x, Y: train_y})
+            train_loss[int(epoch / epoch_per_eval)] = np.mean(loss2)
 
             # termination criteria
-            if f1 > best_f1:
-                best_f1 = f1
+            if loss1 < best_loss:
+                best_loss = loss1
                 best_model = neural_network
                 best_epoch = epoch
-                # TODO SAVE MODEL TO FILE
+                saver.save(sess=sess,save_path=save_path)
                 current_tolerence = terminate_tolerence
             else:
                 if current_tolerence != 0:
@@ -106,14 +112,14 @@ with tf.Session() as sess:
                 
             print(f"Epoch: {epoch}\t"
                   f"F1: {f1:.6f}\t"
-                  f"Loss: {all_loss[int(epoch / epoch_per_eval)]:.6f}\t"
+                  f"Loss: {test_loss[int(epoch / epoch_per_eval)]:.6f}\t"
                   f"Tolerance: {current_tolerence}")
    
 
     print(f"Best Epoch: {best_epoch}\t"
-          f"Best F1: {best_f1}")
+          f"Best Lost: {best_loss}")
 
-    # TODO LOAD MODEL FROM FILE
+    saver.restore(sess=sess,save_path=save_path)
     output = best_model.eval({X: test_x})
     correct_prediction = tf.equal(tf.argmax(output,1),tf.argmax(test_y,1))
     accuracy = tf.keras.backend.get_value(tf.reduce_mean(tf.cast(correct_prediction, tf.float32)))
@@ -124,22 +130,28 @@ with tf.Session() as sess:
  
     print(f"Acc: {accuracy:.6f}\t"
           f"F1: {f1:.6f}\t"
-          f"Loss: {all_loss[int(best_epoch / epoch_per_eval)]:.6f}")
+          f"Loss: {test_loss[int(best_epoch / epoch_per_eval)]:.6f}")
    
     end = time.time()
     print("Total Time Elapsed: ", end - start)
 
-    # print(tf.keras.backend.get_value(all_loss))
+    # print(tf.keras.backend.get_value(test_loss))
 
     # plot overfitting loss over epoch
     plt.figure("fig1")
-    plt.plot(all_loss)
+    plt.plot(test_loss)
+    plt.plot(train_loss)
     plt.ylabel("Binary Cross Entropy Loss")
     plt.xlabel(f"Epoch / {epoch_per_eval}")
-    
+
+    plt.axvline(int(best_epoch / epoch_per_eval), lineStyle='--', color='r')
+
+    plt.legend(["Test Loss", "Train Loss", "Selected Model"])
+
     plt.figure("fig2")
     plt.plot(all_f1)
     plt.ylabel("F1 Score")
     plt.xlabel(f"Epoch / {epoch_per_eval}")
+    plt.axvline(int(best_epoch / epoch_per_eval), lineStyle='--', color='r')
     
     plt.show()
