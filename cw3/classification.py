@@ -17,7 +17,12 @@ logging.basicConfig(level=logging.ERROR)
 import matplotlib.pyplot as plt
 
 import os
-from custom_functions import *
+from functions.neural_network import *
+from functions.data_loading import *
+from functions.data_preprocessing import *
+from functions.data_splitting import *
+from functions.metrics import *
+from functions.math import *
 
 import time
 
@@ -42,22 +47,6 @@ max_epoch = 500
 #Defining the input and the output
 X = tf.placeholder("float", [None, n_input])
 Y = tf.placeholder("float", [None, n_output])
-
-def one_layer_perceptron(input_x, input_size, output_size, activation_type):
-
-    b = tf.Variable(tf.random_normal([output_size]))
-    w = tf.Variable(tf.random_normal([input_size, output_size]))
-
-    if activation_type == "sigmoid":
-        layer = tf.nn.sigmoid(tf.add(tf.matmul(input_x, w), b))
-
-    elif activation_type == "relu":
-        layer = tf.nn.relu(tf.add(tf.matmul(input_x, w), b))
-
-    elif activation_type == "softmax":
-        layer = tf.nn.softmax(tf.add(tf.matmul(input_x, w), b))
-
-    return layer
 
 def multilayer_perceptron(input_x):
 
