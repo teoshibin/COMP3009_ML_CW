@@ -1,6 +1,6 @@
 # Result
 # CAUTION THIS TOOK 11H 30M TO COMPLETE
-# FinalAccuracy: 0.799195  FinalF1: 0.700898  FinalLearning: 0.01
+# FinalAccuracy: 0.799195  FinalF1: 0.700898  FinalLearning: 0.006
 
 import numpy as np
 import tensorflow as tf
@@ -34,7 +34,7 @@ loss_op = tf.keras.losses.binary_crossentropy(Y,neural_network)
 
 #Define optimizer
 optimizer = []
-learning_rates = np.arange(0.01, 0.06, 0.01)
+learning_rates = np.arange(0.003, 0.006, 0.09)
 for lr in learning_rates:
     optimizer.append(tf.train.AdamOptimizer(lr).minimize(loss_op))
 
@@ -95,6 +95,9 @@ for i in range(k):
             with tf.Session() as sess:
                 sess.run(init)
                 
+                saver=tf.train.Saver()
+                save_path='death_event_model/tmp/'
+
                 # termination stuff
                 current_tolerence = terminate_tolerence
                 best_f1 = 0
@@ -120,12 +123,13 @@ for i in range(k):
                         f1 = round(tf.keras.backend.get_value(f1Score(predicted,actual)), 6)
                         f1 = 0 if np.isnan(f1) else f1
                         # allf1[int(epoch / dispEpochEveryN)] = f1
+                        loss = np.mean(tf.keras.backend.get_value(loss_op.eval({X: inner_test_X, Y: inner_test_Y})))
 
                         # termination criteria
-                        if f1 > best_f1:
-                            best_f1 = f1
-                            best_model = neural_network
+                        if loss < best_loss:
+                            best_loss = loss
                             best_epoch = epoch
+                            saver.save(sess=sess,save_path=save_path)
                             current_tolerence = terminate_tolerence
                         else:
                             if current_tolerence != 0:
@@ -142,14 +146,13 @@ for i in range(k):
                         f"F1: {best_f1:.6f} "
                         )
                 
-                output = best_model.eval({X: inner_test_X})
+                saver.restore(sess=sess,save_path=save_path)
+                output = neural_network.eval({X: inner_test_X})
                 correct_prediction = tf.equal(tf.argmax(output,1),tf.argmax(inner_test_Y,1))
                 f1 = tf.keras.backend.get_value(f1Score(tf.argmax(output,1), tf.argmax(inner_test_Y,1)))
                 f1 = 0 if np.isnan(f1) else f1
                 accuracy = tf.keras.backend.get_value(tf.reduce_mean(tf.cast(correct_prediction, tf.float32)))
-                
-                # incre = incre + 1
-                
+                                
                 if f1 > bestF1Score:
                     all_best_hyper_learning[i,j] = hyper_learning_loop
                     bestF1Score = f1
@@ -195,4 +198,4 @@ print(f"FinalAccuracy: {mean_accuracy:.6f} "
 
 # Result
 # CAUTION THIS TOOK 11H 30M TO COMPLETE
-# FinalAccuracy: 0.799195  FinalF1: 0.700898  FinalLearning: 0.01
+# FinalAccuracy: 0.799195  FinalF1: 0.700898  FinalLearning: 0.006

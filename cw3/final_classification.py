@@ -106,7 +106,6 @@ with tf.Session() as sess:
             # termination criteria
             if loss1 < best_loss:
                 best_loss = loss1
-                best_model = neural_network
                 best_epoch = epoch
                 saver.save(sess=sess,save_path=save_path)
                 current_tolerence = terminate_tolerence
@@ -126,7 +125,7 @@ with tf.Session() as sess:
           f"Best Lost: {best_loss}")
 
     saver.restore(sess=sess,save_path=save_path)
-    output = best_model.eval({X: test_x})
+    output = neural_network.eval({X: test_x})
     correct_prediction = tf.equal(tf.argmax(output,1),tf.argmax(test_y,1))
     accuracy = tf.keras.backend.get_value(tf.reduce_mean(tf.cast(correct_prediction, tf.float32)))
 
