@@ -2,7 +2,6 @@
 # CAUTION THIS TOOK 11H 30M TO COMPLETE
 # FinalAccuracy: 0.799195  FinalF1: 0.700898  FinalLearning: 0.01
 
-import os
 import numpy as np
 import tensorflow as tf
 from functions.neural_network import *
