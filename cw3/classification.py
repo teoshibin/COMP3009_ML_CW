@@ -1,111 +1,24 @@
-# %%
-import warnings
-
-from numpy.lib.function_base import average
-from tensorflow.python.ops.gen_control_flow_ops import switch
-warnings.filterwarnings('ignore', category=DeprecationWarning)
-warnings.filterwarnings('ignore', category=FutureWarning)
 
 import numpy as np
 import tensorflow as tf
-tf.get_logger().setLevel('ERROR')
-
-import math
-import logging
-logging.basicConfig(level=logging.ERROR)
-
 import matplotlib.pyplot as plt
-
-import os
 from functions.neural_network import *
 from functions.data_loading import *
 from functions.data_preprocessing import *
 from functions.data_splitting import *
 from functions.metrics import *
 from functions.math import *
-
 import time
 
 start = time.time()
-
 tf.set_random_seed(69)
 
-#Network parameters
-n_input = 12
-n_hidden1 = 24
-n_hidden2 = 12
-n_hidden3 = 6
-n_output = 2
-
 #Learning parameters
-learning_constant = 0.03
-max_epoch = 500
+learning_constant = 0.01
+max_epoch = 300
 
+# ------------------------------- Load dataset ------------------------------- #
 
-# batch_size = 1000
-
-#Defining the input and the output
-X = tf.placeholder("float", [None, n_input])
-Y = tf.placeholder("float", [None, n_output])
-
-def multilayer_perceptron(input_x):
-
-    input_layer = one_layer_perceptron(input_x, 12, 24, "sigmoid")
-    layer_1 = one_layer_perceptron(input_layer, 24, 12, "sigmoid")
-    layer_2 = one_layer_perceptron(layer_1, 12, 6, "sigmoid")
-    out_layer = one_layer_perceptron(layer_2, 6, 2, "softmax")
-    return out_layer
-
-
-
-""" 
-    different loss require different lr and epoch
-    lower lr = more exploitation and require more epoch but overfit
-    higher lr = more exploration and requre less epoch but hard to converge
-"""
-
-#Create model
-neural_network = multilayer_perceptron(X)
-
-#Define loss and optimizer
-
-# all these testing was done using lr = 0.03 termination_tolerence = 15
-
-# Total Time Elapsed:  7.7628843784332275
-# best_epoch: 72 best_f1: 0.6531
-# loss_op = tf.reduce_mean(tf.math.squared_difference(neural_network,Y))
-
-# Total Time Elapsed:  4.167112350463867
-# best_epoch: 38 best_f1: 0.6316
-# loss_op = tf.reduce_mean(tf.nn.softmax_cross_entropy_with_logits(logits=neural_network,labels=Y))
-
-# Total Time Elapsed:  4.726463556289673
-# best_epoch: 43 best_f1: 0.6327
-# loss_op = tf.keras.losses.mean_squared_logarithmic_error(neural_network, Y)
-
-# Total Time Elapsed:  8.137772560119629
-# best_epoch: 73 best_f1: 0.6735
-# loss_op = tf.keras.losses.categorical_crossentropy(Y, neural_network)
-
-# Total Time Elapsed:  8.104426145553589
-# best_epoch: 73 best_f1: 0.6735
-loss_op = tf.keras.losses.binary_crossentropy(Y, neural_network)
-
-# Total Time Elapsed:  5.015074014663696
-# best_epoch: 46 best_f1: 0.6304
-# loss_op = tf.keras.losses.squared_hinge(Y, neural_network)
-
-# Total Time Elapsed:  8.144623279571533
-# best_epoch: 73 best_f1: 0.6735
-# loss_op = tf.keras.losses.kullback_leibler_divergence(Y, neural_network)
-
-# optimizer = tf.train.GradientDescentOptimizer(learning_constant).minimize(loss_op)
-optimizer = tf.train.AdamOptimizer(learning_constant).minimize(loss_op)
-
-#Initializing the variables
-init = tf.global_variables_initializer()
-
-# Load dataset
 x_data, y_data = loadHeartFailureDataset()
 
 # clean & split
@@ -121,13 +34,58 @@ data = mergeLabel(x_data, y_data)
 # data = np.append(data, deathEventInstances, axis=0)
 
 data = shuffleRow(data)
-# np.savetxt("foo.csv", data, delimiter=",")
 
 train_set, test_set = validationSplit(data, 0.5)
 train_x, train_y = splitLabel(train_set, number_of_labels)
 test_x, test_y = splitLabel(test_set, number_of_labels)
 
-# %%
+# y_data is one hot encoded label data
+# def calculateBinaryHist(y_data):
+#     # for the first row calculate number of horizontal elements aka calculate total number of columns
+#     end_index = len(y_data[0])
+#     postives = len(y_data[y_data[:, end_index] == 1, :]
+
+    # postives = y_data[y_data[:,len(y_data[0]) - 1] == 1, :] 
+
+# ------------------------------- Create model ------------------------------- #
+
+#Network parameters
+n_input = 12
+n_hidden1 = 24
+n_hidden2 = 12
+n_hidden3 = 6
+n_output = 2
+
+#Defining the input and the output
+X = tf.placeholder("float", [None, n_input])
+Y = tf.placeholder("float", [None, n_output])
+
+input_layer = one_layer_perceptron(X, n_input, n_hidden1, "sigmoid")
+layer_1 = one_layer_perceptron(input_layer, n_hidden1, n_hidden2, "sigmoid")
+layer_2 = one_layer_perceptron(layer_1, n_hidden2, n_hidden3, "sigmoid")
+logits = one_layer_perceptron(layer_2, n_hidden3, n_output, "none")
+# logits is https://stackoverflow.com/a/66804099/13405629
+
+neural_network = tf.nn.softmax(logits)
+
+#Define loss and optimizer
+
+loss_op = tf.nn.weighted_cross_entropy_with_logits(labels=Y, logits=neural_network, pos_weight=2)
+# loss_op = tf.reduce_mean(tf.math.squared_difference(neural_network,Y))
+# loss_op = tf.reduce_mean(tf.nn.softmax_cross_entropy_with_logits(logits=logits,labels=Y))
+# loss_op = tf.keras.losses.mean_squared_logarithmic_error(neural_network, Y)
+# loss_op = tf.keras.losses.categorical_crossentropy(Y, neural_network)
+# loss_op = tf.keras.losses.binary_crossentropy(Y, neural_network)
+# loss_op = tf.keras.losses.squared_hinge(Y, neural_network)
+# loss_op = tf.keras.losses.kullback_leibler_divergence(Y, neural_network)
+
+# optimizer = tf.train.GradientDescentOptimizer(learning_constant).minimize(loss_op)
+optimizer = tf.train.AdamOptimizer(learning_constant).minimize(loss_op)
+
+#Initializing the variables
+init = tf.global_variables_initializer()
+
+
 with tf.Session() as sess:
     sess.run(init)
 
