@@ -1,23 +1,25 @@
 
-from random import shuffle
 import numpy as np
 import tensorflow as tf
+from tensorflow.python.keras import backend as K
 import matplotlib.pyplot as plt
 from sklearn.model_selection import train_test_split
-from tensorflow.python.keras import backend as K
-# from sklearn.utils import class_weight
+from sklearn.utils import class_weight
+
 from functions.neural_network import *
 from functions.data_loading import *
 from functions.data_preprocessing import *
 from functions.data_splitting import *
 from functions.metrics import *
 from functions.math import *
+
 import time
 start = time.time()
-tf.set_random_seed(69)
+seed = 69
+tf.set_random_seed(seed)
 
 learning_rate = 0.006
-max_epoch = 200
+max_epoch = 300
 epoch_per_eval = 1
 terminate_tolerence = -1
 
@@ -28,22 +30,30 @@ terminate_tolerence = -1
 x_data, y_data = loadHeartFailureDataset()
 x_data = minMaxNorm(x_data)
 
+## OLD DATA SPLITTING
 # number_of_labels = len(y_data[0])
 
 # data = mergeLabel(x_data, y_data)
 # data = shuffleRow(data)
 
-train_x, test_x, train_y, test_y = \
-    train_test_split(x_data, y_data, stratify=y_data , test_size=0.20, random_state=23)
 # train_set, test_set = validationSplit(data, 0.8) # train test split
 # train_x, train_y = splitLabel(train_set, number_of_labels)
 # test_x, test_y = splitLabel(test_set, number_of_labels)
 # train_x, train_y = splitLabel(data, number_of_labels)
 
-# weights = class_weight.compute_class_weight('balanced', 
-#                                             np.unique(np.argmax(y_data)),
-#                                             np.argmax(y_data))
-# print(weights)
+## BUILT IN DATA SPLITTING
+train_x, test_x, train_y, test_y = \
+    train_test_split(x_data, y_data, stratify=y_data , test_size=0.25, random_state=seed)
+
+# w_j = n / k * n_j
+# weight of j class = instances / num_classes * j_class_instances
+# class with low instances will increase the weight
+# class with high instances will decrease in weight
+# class with balance instances weight = 1
+unonehot_label = np.argmax(y_data, axis=1)
+unique_label = np.unique(unonehot_label)
+class_weights = class_weight.compute_class_weight(class_weight='balanced', classes=unique_label, y=unonehot_label)
+
 # --------------------------- TENSOR GRAPH RELATED --------------------------- #
 
 def weighted_binary_cross_entropy( y_true, y_pred, weight1=1, weight0=1 ) :
@@ -76,7 +86,7 @@ neural_network = tf.nn.softmax(logits)
 # loss_op = tf.keras.losses.binary_crossentropy(Y,neural_network)
 # loss_op = tf.compat.v1.losses.softmax_cross_entropy(Y, logits, weights=2)
 # loss_op = tf.nn.weighted_cross_entropy_with_logits(labels=Y, logits=logits, pos_weight=2)
-loss_op = weighted_binary_cross_entropy(Y, neural_network, 0.32, 0.68)
+loss_op = weighted_binary_cross_entropy(Y, neural_network, class_weights[0], class_weights[1])
 optimizer = tf.train.AdamOptimizer(learning_rate).minimize(loss_op)
 
 #Initializing the variables
