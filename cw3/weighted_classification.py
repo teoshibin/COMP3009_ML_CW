@@ -83,9 +83,6 @@ logits = one_layer_perceptron(layer_2, n_hidden3, n_output, "none")
 neural_network = tf.nn.softmax(logits)
 
 # Define Loss to Optimize
-# loss_op = tf.keras.losses.binary_crossentropy(Y,neural_network)
-# loss_op = tf.compat.v1.losses.softmax_cross_entropy(Y, logits, weights=2)
-# loss_op = tf.nn.weighted_cross_entropy_with_logits(labels=Y, logits=logits, pos_weight=2)
 loss_op = weighted_binary_cross_entropy(Y, neural_network, class_weights[0], class_weights[1])
 optimizer = tf.train.AdamOptimizer(learning_rate).minimize(loss_op)
 
@@ -99,8 +96,6 @@ with tf.Session() as sess:
 
     # saver=tf.train.Saver()
     # save_path='death_event_model/'
-
-    # average_losses = np.zeros(int(max_epoch / 10))
 
     # termination stuff
     current_tolerence = terminate_tolerence
@@ -184,8 +179,6 @@ with tf.Session() as sess:
    
     end = time.time()
     print("Total Time Elapsed: ", end - start)
-
-    # print(tf.keras.backend.get_value(test_loss))
 
     # plot overfitting loss over epoch
     plt.figure("fig1")
