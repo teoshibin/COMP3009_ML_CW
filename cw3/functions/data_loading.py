@@ -11,7 +11,7 @@ def loadHeartFailureDataset():    #just get the data
     x_data = data[:, 0:-1]
     y_data = data[:, -1]
     y_data = y_data.astype('int32')
-    y_data = np.identity(2)[y_data] # one hot encoding
+    #y_data = np.identity(2)[y_data] # one hot encoding
 
     # print(x_data)
     # print(y_data)
