@@ -32,7 +32,7 @@ class Logger(object):
         # you might want to specify some extra behavior here.
         pass    
 
-sys.stdout = Logger()
+sys.stdout = Logger() # disable this to prevent print from generating .log files
 
 # ----------------------------------- START ---------------------------------- #
 
@@ -43,9 +43,11 @@ tf.set_random_seed(seed)
 
 k = 10
 stratifiedKF = StratifiedKFold(n_splits = k, random_state = seed, shuffle= True)
-learning_rates = np.array([0.01, 0.005, 0.001])
+## only turning on either one of these learning rate settings
+# learning_rates = np.array([0.01, 0.005, 0.001]) # multiple models to see the behavior of lr
+learning_rates = np.array([0.005]) # final selected model
 max_epoch = 200
-epoch_per_eval = 1
+epoch_per_eval = 1 # change this to a larger value to improve performance while reducing plot details
 
 # ----------------------- DATA LOADING & PREPROCESSING ----------------------- #
 
@@ -58,7 +60,6 @@ x_data = minMaxNorm(x_data)
 # class with low instances will increase the weight
 # class with high instances will decrease in weight
 # class with balance instances weight = 1
-# unonehot_label = np.argmax(y_data, axis=1)
 unique_label = np.unique(y_data)
 class_weights = class_weight.compute_class_weight(class_weight='balanced', classes=unique_label, y=y_data)
 
@@ -86,8 +87,6 @@ input_layer = one_layer_perceptron(X, n_input, n_hidden1, "sigmoid")
 layer_1 = one_layer_perceptron(input_layer, n_hidden1, n_hidden2, "sigmoid")
 layer_2 = one_layer_perceptron(layer_1, n_hidden2, n_hidden3, "sigmoid")
 logits = one_layer_perceptron(layer_2, n_hidden3, n_output, "none")
-
-#Create model
 neural_network = tf.nn.softmax(logits)
 
 # Define Loss to Optimize
@@ -148,10 +147,6 @@ for lr_index in range(len(learning_rates)):
 
                     train_loss = np.mean(loss_op.eval({X: train_x, Y: train_y}))
                     all_train_loss[lr_index][k_index][modIndex] = train_loss
-
-                    # if test_loss < best_loss:
-                    #     best_loss = test_loss
-                    #     best_epoch = epoch
                 
                     print(
                         f"Epoch: {actual_epoch}\t"
