@@ -5,6 +5,7 @@ from tensorflow.python.keras import backend as K
 import matplotlib.pyplot as plt
 from sklearn.utils import class_weight
 from sklearn.model_selection import StratifiedKFold
+from tensorflow.python.ops.gen_nn_ops import LRN
 
 from functions.neural_network import *
 from functions.data_loading import *
@@ -39,13 +40,13 @@ sys.stdout = Logger() # disable this to prevent print from generating .log files
 import time
 start = time.time()
 seed = 69
-tf.set_random_seed(seed)
 
 k = 10
 stratifiedKF = StratifiedKFold(n_splits = k, random_state = seed, shuffle= True)
 ## only turning on either one of these learning rate settings
+learning_rates = np.arange(0.001, 0.03, 0.01)
 # learning_rates = np.array([0.01, 0.005, 0.001]) # multiple models to see the behavior of lr
-learning_rates = np.array([0.005]) # final selected model
+# learning_rates = np.array([0.005]) # final selected model
 max_epoch = 200
 epoch_per_eval = 1 # change this to a larger value to improve performance while reducing plot details
 
@@ -71,32 +72,31 @@ def weighted_binary_cross_entropy( y_true, y_pred, weight1=1, weight0=1 ) :
     logloss = -(y_true * K.log(y_pred) * weight1 + (1 - y_true) * K.log(1 - y_pred) * weight0 )
     return K.mean( logloss, axis=-1)
 
-#Network parameters
-n_input = 12
-n_hidden1 = 24
-n_hidden2 = 12
-n_hidden3 = 6
-n_output = 2
+def myModel():
+    #Network parameters
+    n_input = 12
+    n_hidden1 = 24
+    n_hidden2 = 12
+    n_hidden3 = 6
+    n_output = 2
 
-#Defining the input and the output
-X = tf.placeholder("float", [None, n_input])
-Y = tf.placeholder("float", [None, n_output])
+    #Defining the input and the output
+    X = tf.placeholder("float", [None, n_input])
+    Y = tf.placeholder("float", [None, n_output])
 
-# Define Network
-input_layer = one_layer_perceptron(X, n_input, n_hidden1, "sigmoid")
-layer_1 = one_layer_perceptron(input_layer, n_hidden1, n_hidden2, "sigmoid")
-layer_2 = one_layer_perceptron(layer_1, n_hidden2, n_hidden3, "sigmoid")
-logits = one_layer_perceptron(layer_2, n_hidden3, n_output, "none")
-neural_network = tf.nn.softmax(logits)
+    # Define Network
+    input_layer = one_layer_perceptron(X, n_input, n_hidden1, "sigmoid")
+    layer_1 = one_layer_perceptron(input_layer, n_hidden1, n_hidden2, "sigmoid")
+    layer_2 = one_layer_perceptron(layer_1, n_hidden2, n_hidden3, "sigmoid")
+    logits = one_layer_perceptron(layer_2, n_hidden3, n_output, "none")
+    neural_network = tf.nn.softmax(logits)
 
-# Define Loss to Optimize
-loss_op = weighted_binary_cross_entropy(Y, neural_network, class_weights[0], class_weights[1])
-optimizer = []
-for lr in learning_rates:
-    optimizer.append(tf.train.AdamOptimizer(lr).minimize(loss_op))
+    # Define Loss to Optimize
+    LR = tf.placeholder("float", [])
+    loss_op = weighted_binary_cross_entropy(Y, neural_network, class_weights[0], class_weights[1])
+    optimizer = tf.train.AdamOptimizer(LR).minimize(loss_op)
 
-#Initializing the variables
-init = tf.global_variables_initializer()
+    return X, Y, LR, neural_network, loss_op, optimizer
 
 # --------------------------------- TRAINING --------------------------------- #
 
@@ -115,13 +115,19 @@ for lr_index in range(len(learning_rates)):
         print(f"Fold: {k_index + 1}")
 
         with tf.Session() as sess:
+
+            # reset model
+            tf.set_random_seed(seed)
+            X, Y, LR, neural_network, loss_op, optimizer = myModel()
+            init = tf.global_variables_initializer()
             sess.run(init)
 
             train_x, test_x = x_data[train_index], x_data[test_index]
             train_y, test_y = oneHotEncoding(y_data[train_index]), oneHotEncoding(y_data[test_index])
         
             for epoch in range(max_epoch):
-                sess.run(optimizer[lr_index], feed_dict={X: train_x, Y: train_y})
+                epoch_start = time.time()
+                sess.run(optimizer, feed_dict={X: train_x, Y: train_y, LR: learning_rates[lr_index]})
 
                 #Display the epoch
                 actual_epoch = epoch + 1
@@ -130,33 +136,35 @@ for lr_index in range(len(learning_rates)):
                     modIndex = int(epoch / epoch_per_eval)
 
                     output = neural_network.eval({X: test_x})
+                    
+                    # calcuate all metrics
 
-                    actual = tf.argmax(test_y,1)
-                    predicted = tf.argmax(output,1)
-                    f1 = round(tf.keras.backend.get_value(f1Score(predicted,actual)), 6)
-                    f1 = 0 if np.isnan(f1) else f1
+                    f1 = f1Score(output,test_y)
                     all_f1[lr_index][k_index][modIndex] = f1
 
-                    correct_prediction = tf.equal(tf.argmax(output,1),tf.argmax(test_y,1))
-                    acc = tf.reduce_mean(tf.cast(correct_prediction, tf.float32))
-                    acc = round(tf.keras.backend.get_value(acc), 6)
+                    correct_prediction = np.equal(np.argmax(output,1),np.argmax(test_y,1))
+                    acc = np.mean(correct_prediction)
                     all_acc[lr_index][k_index][modIndex] = acc
 
-                    test_loss = np.mean(tf.keras.backend.get_value(loss_op.eval({X: test_x, Y: test_y})))
+                    test_loss = np.mean(loss_op.eval({X: test_x, Y: test_y}))
                     all_test_loss[lr_index][k_index][modIndex] = test_loss
 
                     train_loss = np.mean(loss_op.eval({X: train_x, Y: train_y}))
                     all_train_loss[lr_index][k_index][modIndex] = train_loss
                 
+                    epoch_end = time.time()
+
                     print(
                         f"Epoch: {actual_epoch}\t"
                         f"Test Acc: {acc:.6f}\t"
                         f"Test F1: {f1:.6f}\t"
                         f"Test Loss: {test_loss:.6f}\t"
                         f"Train Loss: {train_loss:.6f}\t"
+                        f"Time: {(epoch_end - epoch_start):.6f}\t"
                         )
-                    
-            sess.close()
+
+        # reset model
+        tf.reset_default_graph()
         
 # ------------------------------- PLOT FIGURES ------------------------------- #
 
