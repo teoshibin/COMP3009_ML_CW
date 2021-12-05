@@ -1,4 +1,5 @@
 import numpy as np
+import pandas as pd
 import os
 import sys
 
@@ -16,6 +17,19 @@ def loadHeartFailureDataset():    #just get the data
     x_data = data[:, 0:-1]
     y_data = data[:, -1]
     y_data = y_data.astype('int32')
+    #y_data = np.identity(2)[y_data] # one hot encoding
+
+    return x_data, y_data
+
+def loadConcreteDataset():    
+
+    path = os.path.join("datasets","Concrete_Data.xls")
+    df = pd.read_excel(path)
+    data = df.to_numpy()
+
+    #splitting data and label out
+    x_data = data[:, 0:-1]
+    y_data = data[:, -1]
     #y_data = np.identity(2)[y_data] # one hot encoding
 
     return x_data, y_data

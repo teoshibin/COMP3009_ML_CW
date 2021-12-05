@@ -31,6 +31,11 @@ def f1Score(output, test_y):
         f1 = 0
     return f1
 
+def rmseScore(output, test_y):
+    rmse = np.sqrt(np.mean(np.square(output - test_y)))
+
+    return rmse
+
 def recall(predicted, actual):
     TP = np.count_nonzero(predicted * actual)
     FN = np.count_nonzero((predicted - 1) * actual)
