@@ -150,8 +150,8 @@ for lr_index in range(len(learning_rates)):
                     if test_loss < all_test_loss[lr_index][k_index]:
                         all_test_loss[lr_index][k_index] = test_loss
                         all_train_loss[lr_index][k_index] = train_loss
-                        all_test_f1[lr_index][k_index] = test_loss
-                        all_test_acc[lr_index][k_index] = test_loss
+                        all_test_f1[lr_index][k_index] = f1
+                        all_test_acc[lr_index][k_index] = acc
 
                     epoch_end = time.time()
 
