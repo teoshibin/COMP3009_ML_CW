@@ -44,8 +44,7 @@ seed = 69
 k = 10
 stratifiedKF = StratifiedKFold(n_splits = k, random_state = seed, shuffle= True)
 ## only turning on either one of these learning rate settings
-learning_rates = np.arange(0.001, 0.03, 0.01)
-# learning_rates = np.array([0.01, 0.005, 0.001]) # multiple models to see the behavior of lr
+learning_rates = np.around(np.arange(0.005, 0.05, 0.005),3)
 # learning_rates = np.array([0.005]) # final selected model
 max_epoch = 200
 epoch_per_eval = 1 # change this to a larger value to improve performance while reducing plot details
@@ -101,10 +100,10 @@ def myModel():
 # --------------------------------- TRAINING --------------------------------- #
 
 # storage
-all_f1 = np.zeros((len(learning_rates), k, int(max_epoch / epoch_per_eval)))
-all_acc = np.zeros((len(learning_rates), k, int(max_epoch / epoch_per_eval)))
-all_test_loss = np.zeros((len(learning_rates), k, int(max_epoch / epoch_per_eval)))
-all_train_loss = np.zeros((len(learning_rates), k, int(max_epoch / epoch_per_eval)))
+all_test_f1 = np.zeros((len(learning_rates), k))
+all_test_acc = np.zeros((len(learning_rates), k))
+all_test_loss = np.ones((len(learning_rates), k)) * np.inf
+all_train_loss = np.ones((len(learning_rates), k)) * np.inf
 
 for lr_index in range(len(learning_rates)):
 
@@ -140,18 +139,20 @@ for lr_index in range(len(learning_rates)):
                     # calcuate all metrics
 
                     f1 = f1Score(output,test_y)
-                    all_f1[lr_index][k_index][modIndex] = f1
 
                     correct_prediction = np.equal(np.argmax(output,1),np.argmax(test_y,1))
                     acc = np.mean(correct_prediction)
-                    all_acc[lr_index][k_index][modIndex] = acc
 
                     test_loss = np.mean(loss_op.eval({X: test_x, Y: test_y}))
-                    all_test_loss[lr_index][k_index][modIndex] = test_loss
 
                     train_loss = np.mean(loss_op.eval({X: train_x, Y: train_y}))
-                    all_train_loss[lr_index][k_index][modIndex] = train_loss
                 
+                    if test_loss < all_test_loss[lr_index][k_index]:
+                        all_test_loss[lr_index][k_index] = test_loss
+                        all_train_loss[lr_index][k_index] = train_loss
+                        all_test_f1[lr_index][k_index] = test_loss
+                        all_test_acc[lr_index][k_index] = test_loss
+
                     epoch_end = time.time()
 
                     print(
@@ -168,38 +169,36 @@ for lr_index in range(len(learning_rates)):
         
 # ------------------------------- PLOT FIGURES ------------------------------- #
 
-plt.figure("fig1")
-for i in range(len(learning_rates)):
+def myBoxplot(data, subxlabels, title="", xlabel="", ylabel=""):
 
-    # mean results of 10 fold
-    plt_test_loss = np.mean(all_test_loss[i], axis=0)
-    plt_train_loss = np.mean(all_train_loss[i], axis=0)
+    fig, ax = plt.subplots()
+    bp = ax.boxplot(np.transpose(data))
 
-    # plot overfitting loss over epoch
-    plt.plot(plt_test_loss)
-    plt.plot(plt_train_loss)
+    # Add a horizontal grid to the plot, but make it very light in color
+    ax.yaxis.grid(True, linestyle='-', which='major', color='lightgrey', alpha=0.5)
 
-plt.xlabel(f"Epoch / {epoch_per_eval}")
-plt.ylabel("Binary Cross Entropy Loss")
-plt.legend(["Test Loss 1", "Train Loss 1","Test Loss 2", "Train Loss 2","Test Loss 3", "Train Loss 3"])
+    ax.set(
+        axisbelow=True,  # Hide the grid behind plot objects
+        title=title,
+        xlabel=xlabel,
+        ylabel=ylabel,
+    )
+    ax.set_xticklabels(subxlabels, rotation=45, fontsize=8)
 
-plt.figure("fig2")
-for i in range(len(learning_rates)):
-
-    # mean results of 10 fold
-    plt_f1 = np.mean(all_f1[i], axis=0) 
-    plt_acc = np.mean(all_acc[i], axis=0)
-
-    # plot metric score over epoch
-    plt.plot(plt_f1)
-    plt.plot(plt_acc)
-    
-plt.xlabel(f"Epoch / {epoch_per_eval}")
-plt.ylabel("Metric Score")    
-plt.legend(["F1 Score 1", "Accuracy 1","F1 Score 2", "Accuracy 2","F1 Score 3", "Accuracy 3"])
+    # plot the sample averages, with horizontal alignment
+    # in the center of each box
+    for i in range(len(data)):
+        med = bp['medians'][i]
+        ax.plot(np.average(med.get_xdata()), np.average(data[i]),
+            color='w', marker='*', markeredgecolor='k')
+    return fig, ax
 
 end = time.time()
 print("Time Elapsed: ", end - start)
 
+myBoxplot(all_test_loss, learning_rates, "Learning Rates k-fold cv loss Distributions", "Distributions", "Losses")
+# myBoxplot(all_train_loss, learning_rates, "Learning Rates k-fold cv loss Distributions", "Distributions", "Losses")
+myBoxplot(all_test_f1, learning_rates, "Learning Rates k-fold cv loss Distributions", "Distributions", "F1 Score")
+# myBoxplot(all_test_acc, learning_rates, "Learning Rates k-fold cv loss Distributions", "Distributions", "Accuracy")
 plt.show()
                 
