@@ -1,51 +1,40 @@
 
+# ANN
 import numpy as np
 import tensorflow as tf
 from tensorflow.python.keras import backend as K
 import matplotlib.pyplot as plt
 from sklearn.utils import class_weight
 from sklearn.model_selection import StratifiedKFold
-from tensorflow.python.ops.gen_nn_ops import LRN
 
+# Custom Functions
 from functions.neural_network import *
-from functions.data_loading import *
+from functions.data_IO import *
 from functions.data_preprocessing import *
 # from functions.data_splitting import *
 from functions.metrics import *
 # from functions.math import *
+from functions.plots import *
 
+# Misc
 import sys
+import time
 
 # ---------------------- STORE AND PRINT STANDARD OUTPUT --------------------- #
 
-class Logger(object):
-    def __init__(self):
-        self.terminal = sys.stdout
-        self.log = open("classification.log", "w")
-   
-    def write(self, message):
-        self.terminal.write(message)
-        self.log.write(message)  
-
-    def flush(self):
-        # this flush method is needed for python 3 compatibility.
-        # this handles the flush command by doing nothing.
-        # you might want to specify some extra behavior here.
-        pass    
-
-sys.stdout = Logger() # disable this to prevent print from generating .log files
+cdSubDir("cw3") # workspace code, making sure this py script is ran using the correct path
+sys.stdout = Logger("classification.log") # disable this to prevent print from generating .log files
 
 # ----------------------------------- START ---------------------------------- #
 
-import time
 start = time.time()
 seed = 69
 
 k = 10
 stratifiedKF = StratifiedKFold(n_splits = k, random_state = seed, shuffle= True)
 ## only turning on either one of these learning rate settings
-learning_rates = np.around(np.arange(0.005, 0.05, 0.005),3)
-# learning_rates = np.array([0.005]) # final selected model
+learning_rates = np.around(np.arange(0.005, 0.051, 0.005),3)
+# learning_rates = np.array([0.035]) # final selected model
 max_epoch = 200
 epoch_per_eval = 1 # change this to a larger value to improve performance while reducing plot details
 
@@ -168,30 +157,6 @@ for lr_index in range(len(learning_rates)):
         tf.reset_default_graph()
         
 # ------------------------------- PLOT FIGURES ------------------------------- #
-
-def myBoxplot(data, subxlabels, title="", xlabel="", ylabel=""):
-
-    fig, ax = plt.subplots()
-    bp = ax.boxplot(np.transpose(data))
-
-    # Add a horizontal grid to the plot, but make it very light in color
-    ax.yaxis.grid(True, linestyle='-', which='major', color='lightgrey', alpha=0.5)
-
-    ax.set(
-        axisbelow=True,  # Hide the grid behind plot objects
-        title=title,
-        xlabel=xlabel,
-        ylabel=ylabel,
-    )
-    ax.set_xticklabels(subxlabels, rotation=45, fontsize=8)
-
-    # plot the sample averages, with horizontal alignment
-    # in the center of each box
-    for i in range(len(data)):
-        med = bp['medians'][i]
-        ax.plot(np.average(med.get_xdata()), np.average(data[i]),
-            color='w', marker='*', markeredgecolor='k')
-    return fig, ax
 
 end = time.time()
 print("Time Elapsed: ", end - start)
