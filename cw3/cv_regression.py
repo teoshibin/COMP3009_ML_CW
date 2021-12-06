@@ -1,7 +1,6 @@
 
 import numpy as np
 import tensorflow as tf
-from tensorflow.python.keras import backend as K
 import matplotlib.pyplot as plt
 from sklearn.model_selection import KFold
 
@@ -24,7 +23,7 @@ sys.stdout = Logger("regression.log") # disable this to prevent print from gener
 # ----------------------------------- START ---------------------------------- #
 
 start = time.time()
-seed = 69
+seed = 2021
 
 k = 10
 KF = KFold(n_splits = k, random_state = seed, shuffle= True)
@@ -41,19 +40,7 @@ epoch_per_eval = 1 # change this to a larger value to improve performance while 
 x_data, y_data = loadConcreteDataset()
 x_data = minMaxNorm(x_data)
 
-# w_j = n / k * n_j
-# weight of j class = instances / num_classes * j_class_instances
-# class with low instances will increase the weight
-# class with high instances will decrease in weight
-# class with balance instances weight = 1
-
 # --------------------------- TENSOR GRAPH RELATED --------------------------- #
-
-def weighted_binary_cross_entropy( y_true, y_pred, weight1=1, weight0=1 ) :
-    y_true = K.clip(y_true, K.epsilon(), 1-K.epsilon())
-    y_pred = K.clip(y_pred, K.epsilon(), 1-K.epsilon())
-    logloss = -(y_true * K.log(y_pred) * weight1 + (1 - y_true) * K.log(1 - y_pred) * weight0 )
-    return K.mean( logloss, axis=-1)
 
 def myModel(weight_decay = 0.01):
     #Network parameters
@@ -165,10 +152,14 @@ for weight_index in range(len(weight_decays)):
 
 end = time.time()
 print("Time Elapsed: ", end - start)
+
 for weight_index in range(len(weight_decays)):
-    myBoxplot(all_test_loss[weight_index], learning_rates, "Learning Rates 10-fold cv loss Distributions", "Learning Rates", "Losses")
+    myBoxplot(all_test_loss[weight_index], learning_rates, 
+              "Learning Rates 10-fold cv loss Distributions, weight decay = "+str(weight_decays[weight_index]), 
+              "Learning Rates", "Losses")
     # myBoxplot(all_train_loss, learning_rates, "Learning Rates k-fold cv loss Distributions", "Distributions", "Losses")
-    myBoxplot(all_test_rmse[weight_index], learning_rates, "Learning Rates 10-fold cv loss Distributions", "Learning Rates", "RMSE Score")
+    myBoxplot(all_test_rmse[weight_index], learning_rates, 
+              "Learning Rates 10-fold cv loss Distributions, weight decay = "+str(weight_decays[weight_index]), 
+              "Learning Rates", "RMSE Score")
     # myBoxplot(all_test_acc, learning_rates, "Learning Rates k-fold cv loss Distributions", "Distributions", "Accuracy")
     plt.show()
-    break
