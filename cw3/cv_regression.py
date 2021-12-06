@@ -70,7 +70,7 @@ def weighted_binary_cross_entropy( y_true, y_pred, weight1=1, weight0=1 ) :
 
 def myModel():
     #Network parameters
-    n_input = 12
+    n_input = 8
     n_hidden1 = 24
     n_hidden2 = 12
     n_hidden3 = 6
@@ -117,7 +117,7 @@ for lr_index in range(len(learning_rates)):
             sess.run(init)
 
             train_x, test_x = x_data[train_index], x_data[test_index]
-            train_y, test_y = oneHotEncoding(y_data[train_index]), oneHotEncoding(y_data[test_index])
+            train_y, test_y = np.reshape(y_data[train_index],(-1,1)), np.reshape(y_data[test_index],(-1,1))
         
             for epoch in range(max_epoch):
                 epoch_start = time.time()
@@ -184,9 +184,9 @@ def myBoxplot(data, subxlabels, title="", xlabel="", ylabel=""):
 end = time.time()
 print("Time Elapsed: ", end - start)
 
-myBoxplot(all_test_loss, learning_rates, "Learning Rates k-fold cv loss Distributions", "Learning Rates", "Losses")
+myBoxplot(all_test_loss, learning_rates, "Learning Rates 10-fold cv loss Distributions", "Learning Rates", "Losses")
 # myBoxplot(all_train_loss, learning_rates, "Learning Rates k-fold cv loss Distributions", "Distributions", "Losses")
-myBoxplot(all_test_rmse, learning_rates, "Learning Rates k-fold cv loss Distributions", "Learning Rates", "RMSE Score")
+myBoxplot(all_test_rmse, learning_rates, "Learning Rates 10-fold cv loss Distributions", "Learning Rates", "RMSE Score")
 # myBoxplot(all_test_acc, learning_rates, "Learning Rates k-fold cv loss Distributions", "Distributions", "Accuracy")
 plt.show()
                 

@@ -159,9 +159,9 @@ for lr_index in range(len(learning_rates)):
 end = time.time()
 print("Time Elapsed: ", end - start)
 
-myBoxplot(all_test_loss, learning_rates, "Learning Rates k-fold cv loss Distributions", "Learning Rates", "Losses")
+myBoxplot(all_test_loss, learning_rates, "Learning Rates 10-fold cv loss Distributions", "Learning Rates", "Losses")
 # myBoxplot(all_train_loss, learning_rates, "Learning Rates k-fold cv loss Distributions", "Distributions", "Losses")
-myBoxplot(all_test_f1, learning_rates, "Learning Rates k-fold cv loss Distributions", "Learning Rates", "F1 Score")
+myBoxplot(all_test_f1, learning_rates, "Learning Rates 10-fold cv loss Distributions", "Learning Rates", "F1 Score")
 # myBoxplot(all_test_acc, learning_rates, "Learning Rates k-fold cv loss Distributions", "Distributions", "Accuracy")
 plt.show()
                 
