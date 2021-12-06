@@ -33,8 +33,8 @@ seed = 2021
 k = 10
 stratifiedKF = StratifiedKFold(n_splits = k, random_state = seed, shuffle= True)
 ## only turning on either one of these learning rate settings
-# learning_rates = np.around(np.arange(0.005, 0.051, 0.005),3)
-learning_rates = np.array([0.02]) # final selected model
+learning_rates = np.around(np.arange(0.005, 0.051, 0.005),3)
+# learning_rates = np.array([0.02]) # final selected model
 max_epoch = 200
 epoch_per_eval = 1 # change this to a larger value to improve performance while reducing plot details
 

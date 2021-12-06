@@ -18,18 +18,18 @@ def myBoxplot(data, subxlabels, title="", xlabel="", ylabel=""):
     )
     ax.set_xticklabels(subxlabels, rotation=45, fontsize=8)
 
+    # for spacing of text plotting
+    max_all = np.max(data)
+    min_all = np.min(data)
+    vert_shift = (max_all - min_all) / 100
+
     for i in range(len(data)):
         med = bp['medians'][i]
         box_middle_x = np.average(med.get_xdata())
         
-        max = np.max(data[i]) 
-        min = np.min(data[i])
-        vert_shift = (max - min) / 100
-        max_all = np.max(data)
-        min_all = np.min(data)
         
         # plot median text
-        median = med.get_ydata()[i]
+        median = np.average(med.get_ydata())
         ax.text(box_middle_x, min_all - vert_shift * 2, '%.4f\n' % median,
             horizontalalignment='center', verticalalignment='top', fontsize=8, color='orange')
                         
@@ -42,6 +42,8 @@ def myBoxplot(data, subxlabels, title="", xlabel="", ylabel=""):
             horizontalalignment='center', verticalalignment='top', fontsize=8, color='green')
         
         # plot range
+        max = np.max(data[i]) 
+        min = np.min(data[i])
         y = (max + min) / 2
         ax.plot(box_middle_x, y, color='w', marker='x', markeredgecolor='r')
         # plot range text
