@@ -28,7 +28,7 @@ sys.stdout = Logger("classification.log") # disable this to prevent print from g
 # ----------------------------------- START ---------------------------------- #
 
 start = time.time()
-seed = 69
+seed = 2021
 
 k = 10
 stratifiedKF = StratifiedKFold(n_splits = k, random_state = seed, shuffle= True)
@@ -64,8 +64,8 @@ def myModel():
     #Network parameters
     n_input = 12
     n_hidden1 = 24
-    n_hidden2 = 12
-    n_hidden3 = 6
+    n_hidden2= 32
+    n_hidden3 = 24
     n_output = 2
 
     #Defining the input and the output
@@ -134,7 +134,8 @@ for lr_index in range(len(learning_rates)):
 
                     train_loss = np.mean(loss_op.eval({X: train_x, Y: train_y}))
                 
-                    if test_loss < all_test_loss[lr_index][k_index]:
+                    # if test_loss < all_test_loss[lr_index][k_index]:
+                    if f1 > all_test_f1[lr_index][k_index]:
                         all_test_loss[lr_index][k_index] = test_loss
                         all_train_loss[lr_index][k_index] = train_loss
                         all_test_f1[lr_index][k_index] = f1

@@ -20,10 +20,10 @@ def myBoxplot(data, subxlabels, title="", xlabel="", ylabel=""):
 
     # plot the sample averages, with horizontal alignment
     # in the center of each box
-    # for i in range(len(data)):
-    #     med = bp['medians'][i]
-    #     ax.plot(np.average(med.get_xdata()), np.average(data[i]),
-    #         color='w', marker='*', markeredgecolor='k')
+    for i in range(len(data)):
+        med = bp['medians'][i]
+        ax.plot(np.average(med.get_xdata()), np.average(data[i]),
+            color='w', marker='d', markeredgecolor='g')
 
     # get middle point of min and max value and plot range text
     for i in range(len(data)):
@@ -37,4 +37,14 @@ def myBoxplot(data, subxlabels, title="", xlabel="", ylabel=""):
         ax.text(box_middle_x, y - shift * 2, '%.4f\n± %.4f' % (y, (max - y)), 
             horizontalalignment='center', verticalalignment='top', fontsize=8)
 
+    # legends
+    fig.text(0.83, 0.97, '-', color='orange', backgroundcolor='white', size='medium')
+    fig.text(0.845, 0.973, ' Median', color='black', weight='roman',size='x-small')
+    
+    fig.text(0.83, 0.945, 'x', color='red', backgroundcolor='white', size='medium')
+    fig.text(0.845, 0.943, ' Min Max Center', color='black', weight='roman',size='x-small')
+    
+    fig.text(0.83, 0.915, '♢', color='green', backgroundcolor='white', size='medium')
+    fig.text(0.845, 0.913, ' Average', color='black', weight='roman',size='x-small')
+    
     return fig, ax
