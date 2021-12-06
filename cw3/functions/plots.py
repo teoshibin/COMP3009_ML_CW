@@ -50,12 +50,12 @@ def myBoxplot(data, subxlabels, title="", xlabel="", ylabel=""):
 
     # legends
     fig.text(0.83, 0.97, '-', color='orange', backgroundcolor='white', size='medium')
-    fig.text(0.845, 0.973, ' Median', color='black', weight='roman',size='x-small')
+    fig.text(0.845, 0.973, ' Median', color='orange', weight='roman',size='x-small')
     
     fig.text(0.83, 0.945, 'x', color='red', backgroundcolor='white', size='medium')
-    fig.text(0.845, 0.943, ' Min Max Center', color='black', weight='roman',size='x-small')
+    fig.text(0.845, 0.943, ' Min Max Center', color='red', weight='roman',size='x-small')
     
     fig.text(0.83, 0.915, '♢', color='green', backgroundcolor='white', size='medium')
-    fig.text(0.845, 0.913, ' Average', color='black', weight='roman',size='x-small')
+    fig.text(0.845, 0.913, ' Average', color='green', weight='roman',size='x-small')
     
     return fig, ax
