@@ -4,40 +4,25 @@ import tensorflow as tf
 from tensorflow.python.keras import backend as K
 import matplotlib.pyplot as plt
 from sklearn.model_selection import KFold
-from tensorflow.python.ops.gen_nn_ops import LRN
 
 from functions.neural_network import *
 from functions.data_IO import *
 from functions.data_preprocessing import *
 # from functions.data_splitting import *
 from functions.metrics import *
-from functions.plots import *
 # from functions.math import *
+from functions.plots import *
 
 import sys
+import time
 
 # ---------------------- STORE AND PRINT STANDARD OUTPUT --------------------- #
 
-class Logger(object):
-    def __init__(self):
-        self.terminal = sys.stdout
-        self.log = open("regression.log", "w")
-   
-    def write(self, message):
-        self.terminal.write(message)
-        self.log.write(message)  
-
-    def flush(self):
-        # this flush method is needed for python 3 compatibility.
-        # this handles the flush command by doing nothing.
-        # you might want to specify some extra behavior here.
-        pass    
-
-sys.stdout = Logger() # disable this to prevent print from generating .log files
+cdSubDir("cw3")
+sys.stdout = Logger("regression.log") # disable this to prevent print from generating .log files
 
 # ----------------------------------- START ---------------------------------- #
 
-import time
 start = time.time()
 seed = 69
 
