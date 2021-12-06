@@ -118,7 +118,11 @@ for lr_index in range(len(learning_rates)):
 
             train_x, test_x = x_data[train_index], x_data[test_index]
             train_y, test_y = np.reshape(y_data[train_index],(-1,1)), np.reshape(y_data[test_index],(-1,1))
-        
+            
+            train_losses = []
+            test_losses = []
+            rmses =[]
+            
             for epoch in range(max_epoch):
                 epoch_start = time.time()
                 sess.run(optimizer, feed_dict={X: train_x, Y: train_y, LR: learning_rates[lr_index]})
@@ -132,10 +136,15 @@ for lr_index in range(len(learning_rates)):
                     # calcuate all metrics
 
                     rmse = rmseScore(output,test_y)
+                    rmses.append(rmse)
 
                     test_loss = np.mean(loss_op.eval({X: test_x, Y: test_y}))
+                    test_losses.append(test_loss)
+
 
                     train_loss = np.mean(loss_op.eval({X: train_x, Y: train_y}))
+                    train_losses.append(train_loss)
+
                 
                     if test_loss < all_test_loss[lr_index][k_index]:
                         all_test_loss[lr_index][k_index] = test_loss
@@ -151,6 +160,14 @@ for lr_index in range(len(learning_rates)):
                         f"Train Loss: {train_loss:.6f}\t"
                         f"Time: {(epoch_end - epoch_start):.6f}\t"
                         )
+            if k_index == 0:
+                plt.plot(train_losses[500:])
+                plt.plot(test_losses[500:])
+                plt.title(str(learning_rates[lr_index]) +" " + str(all_test_rmse[lr_index][k_index]))
+                plt.legend(['train', 'validation'], loc='upper left')
+                plt.figure()
+                plt.plot(rmses[500:])
+                plt.figure()
 
         # reset model
         tf.reset_default_graph()
@@ -189,4 +206,3 @@ myBoxplot(all_test_loss, learning_rates, "Learning Rates 10-fold cv loss Distrib
 myBoxplot(all_test_rmse, learning_rates, "Learning Rates 10-fold cv loss Distributions", "Learning Rates", "RMSE Score")
 # myBoxplot(all_test_acc, learning_rates, "Learning Rates k-fold cv loss Distributions", "Distributions", "Accuracy")
 plt.show()
-                
