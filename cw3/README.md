@@ -20,7 +20,7 @@
 ```
 `cv_classification.py` show the evaluation of artificial neural network on the classification task.  
 `cv_regression.py` show the evaluation of artificial neural network on the regression task.    
-`REQUIREMENTS.md` show all the required packages version
+`REQUIREMENTS.md` show all the required packages version   
 `functions` contain all functions related to the artificial neural network. 
 
 ## Dependencies Related
