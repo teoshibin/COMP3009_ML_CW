@@ -14,19 +14,14 @@
         ├── datasets/
         ├── results/
         ├── functions/
-        │   ├── data_IO.py
-        │   ├── data_preprocessing.py
-        │   ├── data_splitting.py
-        │   ├── math.py
-        │   ├── metrics.py
-        │   ├── neural_network.py
-        │   └── plots.py
         ├── cv_classification.py
         ├── cv_regression.py
-        ├── REQUIREMENTS.md
-        └── README.md
+        └── REQUIREMENTS.md
 ```
-
+`cv_classification.py` show the evaluation of artificial neural network on the classification task.  
+`cv_regression.py` show the evaluation of artificial neural network on the regression task.    
+`functions` contain all functions related to the artificial neural network.   
+`REQUIREMENTS.md` show all the required packages version
 
 ## Dependencies Related
 - [Requirements](REQUIREMENTS.md)
