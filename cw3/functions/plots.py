@@ -18,24 +18,35 @@ def myBoxplot(data, subxlabels, title="", xlabel="", ylabel=""):
     )
     ax.set_xticklabels(subxlabels, rotation=45, fontsize=8)
 
-    # plot the sample averages, with horizontal alignment
-    # in the center of each box
-    for i in range(len(data)):
-        med = bp['medians'][i]
-        ax.plot(np.average(med.get_xdata()), np.average(data[i]),
-            color='w', marker='d', markeredgecolor='g')
-
-    # get middle point of min and max value and plot range text
     for i in range(len(data)):
         med = bp['medians'][i]
         box_middle_x = np.average(med.get_xdata())
+        
         max = np.max(data[i]) 
         min = np.min(data[i])
-        shift = (max - min) / 100
+        vert_shift = (max - min) / 100
+        max_all = np.max(data)
+        min_all = np.min(data)
+        
+        # plot median text
+        median = med.get_ydata()[i]
+        ax.text(box_middle_x, min_all - vert_shift * 2, '%.4f\n' % median,
+            horizontalalignment='center', verticalalignment='top', fontsize=8, color='orange')
+                        
+        # plot average
+        mean = np.average(data[i])
+        ax.plot(box_middle_x, mean,
+            color='w', marker='d', markeredgecolor='g')
+        # plot average text
+        ax.text(box_middle_x, max_all + vert_shift * 3.5, '%.4f\n' % mean,
+            horizontalalignment='center', verticalalignment='top', fontsize=8, color='green')
+        
+        # plot range
         y = (max + min) / 2
         ax.plot(box_middle_x, y, color='w', marker='x', markeredgecolor='r')
-        ax.text(box_middle_x, y - shift * 2, '%.4f\n± %.4f' % (y, (max - y)), 
-            horizontalalignment='center', verticalalignment='top', fontsize=8)
+        # plot range text
+        ax.text(box_middle_x, y - vert_shift * 2, '%.4f\n± %.4f' % (y, (max - y)), 
+            horizontalalignment='center', verticalalignment='top', fontsize=8, color='red')
 
     # legends
     fig.text(0.83, 0.97, '-', color='orange', backgroundcolor='white', size='medium')
