@@ -20,8 +20,8 @@
 ```
 `cv_classification.py` show the evaluation of artificial neural network on the classification task.  
 `cv_regression.py` show the evaluation of artificial neural network on the regression task.    
-`functions` contain all functions related to the artificial neural network.   
 `REQUIREMENTS.md` show all the required packages version
+`functions` contain all functions related to the artificial neural network. 
 
 ## Dependencies Related
 - [Requirements](REQUIREMENTS.md)
