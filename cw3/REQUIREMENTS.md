@@ -20,8 +20,9 @@
     conda install -c conda-forge scipy=1.7.3
     conda install -c conda-forge scikit-learn=1.0.1
     conda install -c conda-forge pandas=1.3.4
+    conda install -c conda-forge xlrd=2.0.1
     ```
     or one liner for window batch
     ```batch
-    conda install -y -c conda-forge numpy=1.20.3 tensorflow=1.14.0 matplotlib=3.5.0 scipy=1.7.3 scikit-learn=1.0.1 pandas=1.3.4
+    conda install -y -c conda-forge numpy=1.20.3 tensorflow=1.14.0 matplotlib=3.5.0 scipy=1.7.3 scikit-learn=1.0.1 pandas=1.3.4 xlrd=2.0.1
     ```
