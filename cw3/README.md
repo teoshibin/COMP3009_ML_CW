@@ -7,7 +7,27 @@
 - Regression
     [Concrete Compressive Strength Data Set](https://archive.ics.uci.edu/ml/datasets/Concrete+Compressive+Strength)
 
-      
+## Folder Structure
+```
+    .
+    └── cw3/
+        ├── datasets/
+        ├── results/
+        ├── functions/
+        │   ├── data_IO.py
+        │   ├── data_preprocessing.py
+        │   ├── data_splitting.py
+        │   ├── math.py
+        │   ├── metrics.py
+        │   ├── neural_network.py
+        │   └── plots.py
+        ├── cv_classification.py
+        ├── cv_regression.py
+        ├── REQUIREMENTS.md
+        └── README.md
+```
+
+
 ## Dependencies Related
 - [Requirements](REQUIREMENTS.md)
 - [Anaconda Commands Doc](https://docs.conda.io/projects/conda/en/latest/user-guide/tasks/manage-environments.html)
