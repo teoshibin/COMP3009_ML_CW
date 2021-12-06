@@ -20,4 +20,4 @@ def one_layer_perceptron(input_x, input_size, output_size, activation_type="none
     elif activation_type == "none":
         layer = logits
 
-    return layer
+    return layer, w
