@@ -21,3 +21,30 @@ def one_layer_perceptron(input_x, input_size, output_size, activation_type="none
         layer = logits
 
     return layer, w
+
+def multi_layer_perceptron(structure):
+    
+    # # Network Structure
+    # structure = np.array([
+    #     (8, ""),
+    #     (48, "relu"),
+    #     (32, "relu"),
+    #     (16, "relu"),
+    #     (32, "relu"),
+    #     (8, "relu"),
+    #     (1, "none"),
+    #     ])
+    
+    #Defining the input and the output
+    X = tf.placeholder("float", [None, structure[0][0]])
+    Y = tf.placeholder("float", [None, structure[-1][0]])
+
+    # Loop Generate Network
+    output_layer, w = one_layer_perceptron(X, int(structure[0][0]), int(structure[1][0]), structure[1][1])
+    regularizer = tf.nn.l2_loss(w)
+    for i in range(1, len(structure) - 1):
+        output_layer, w = one_layer_perceptron(
+            output_layer, int(structure[i][0]), int(structure[i + 1][0]), structure[i + 1][1])    
+        regularizer = regularizer + tf.nn.l2_loss(w)
+        
+    return output_layer, regularizer, X, Y

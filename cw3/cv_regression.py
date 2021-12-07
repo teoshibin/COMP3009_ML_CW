@@ -166,7 +166,7 @@ for weight_index in range(len(weight_decays)):
 end = time.time()
 print("Time Elapsed: ", end - start)
 
-if len(learning_rates) == 1:
+if len(learning_rates) == 1 and len(weight_decays) == 1:
     print("RMSE:\n", all_test_rmse)
     print("Loss:\n", all_test_loss)
 
