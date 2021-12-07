@@ -28,9 +28,10 @@ seed = 2021
 k = 10
 KF = KFold(n_splits = k, random_state = seed, shuffle= True)
 ## only turning on either one of these learning rate settings
-learning_rates = np.around(np.arange(0.005, 0.05, 0.005),3)
-weight_decays = np.around(np.arange(0.005,0.05,0.005),3)
-# learning_rates = np.array([0.005]) # final selected model
+# learning_rates = np.around(np.arange(0.01, 0.05, 0.01),3)
+# weight_decays = np.around(np.arange(0.01,0.05,0.01),3)
+learning_rates = np.around(np.array([0.01]),3)
+weight_decays = np.around(np.array([0.005]),3)
 max_epoch = 10000
 epoch_per_eval = 1 # change this to a larger value to improve performance while reducing plot details
 
@@ -45,9 +46,11 @@ x_data = minMaxNorm(x_data)
 def myModel(weight_decay = 0.01):
     #Network parameters
     n_input = 8
-    n_hidden1 = 24
-    n_hidden2 = 12
-    n_hidden3 = 6
+    n_hidden1 = 48
+    n_hidden2 = 32
+    n_hidden3 = 16
+    n_hidden4 = 32
+    n_hidden5 = 8
     n_output = 1
 
     #Defining the input and the output
@@ -58,11 +61,13 @@ def myModel(weight_decay = 0.01):
     input_layer, w1 = one_layer_perceptron(X, n_input, n_hidden1, "relu")
     layer_1, w2 = one_layer_perceptron(input_layer, n_hidden1, n_hidden2, "relu")
     layer_2, w3= one_layer_perceptron(layer_1, n_hidden2, n_hidden3, "relu")
-    neural_network, w4 = one_layer_perceptron(layer_2, n_hidden3, n_output, "none")
+    layer_3, w4= one_layer_perceptron(layer_2, n_hidden3, n_hidden4, "relu")
+    layer_4, w5= one_layer_perceptron(layer_3, n_hidden4, n_hidden5, "relu")
+    neural_network, w6 = one_layer_perceptron(layer_4, n_hidden5, n_output, "none")
 
     # Define Loss to Optimize
     LR = tf.placeholder("float", [])
-    regularizer = tf.nn.l2_loss(w1) + tf.nn.l2_loss(w2) + tf.nn.l2_loss(w3) + tf.nn.l2_loss(w4)
+    regularizer = tf.nn.l2_loss(w1) + tf.nn.l2_loss(w2) + tf.nn.l2_loss(w3) + tf.nn.l2_loss(w4) + tf.nn.l2_loss(w5)  + tf.nn.l2_loss(w6)
     loss_op = tf.reduce_mean(tf.math.squared_difference(neural_network,Y) + weight_decay * regularizer)
     optimizer = tf.train.AdamOptimizer(LR).minimize(loss_op)
 
@@ -146,7 +151,6 @@ for weight_index in range(len(weight_decays)):
     
             # reset model
             tf.reset_default_graph()
-    break
         
 # ------------------------------- PLOT FIGURES ------------------------------- #
 
@@ -157,9 +161,11 @@ for weight_index in range(len(weight_decays)):
     myBoxplot(all_test_loss[weight_index], learning_rates, 
               "Learning Rates 10-fold cv loss Distributions, weight decay = "+str(weight_decays[weight_index]), 
               "Learning Rates", "Losses")
+    # plt.savefig(os.path.join('results', 'regression', f'Loss_wd_{weight_decays[weight_index]}.png'))
     # myBoxplot(all_train_loss, learning_rates, "Learning Rates k-fold cv loss Distributions", "Distributions", "Losses")
     myBoxplot(all_test_rmse[weight_index], learning_rates, 
               "Learning Rates 10-fold cv loss Distributions, weight decay = "+str(weight_decays[weight_index]), 
               "Learning Rates", "RMSE Score")
+    # plt.savefig(os.path.join('results', 'regression', f'RMSE_wd_{weight_decays[weight_index]}.png'))
     # myBoxplot(all_test_acc, learning_rates, "Learning Rates k-fold cv loss Distributions", "Distributions", "Accuracy")
-    plt.show()
+plt.show()
