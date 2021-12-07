@@ -32,12 +32,12 @@ KF = KFold(n_splits = k, random_state = seed, shuffle= True)
 
 ## only turning on either one of these learning rate settings
 ## Full Run of these configs requires 123s * 5 * 5 time = 51.25mins
-# learning_rates = np.around(np.arange(0.005, 0.051, 0.01),3)
-# weight_decays = np.around(np.arange(0.005,0.051,0.01),3)
+learning_rates = np.around(np.arange(0.005, 0.05, 0.01),3)
+weight_decays = np.around(np.arange(0.005, 0.05, 0.01),3)
 
 ## Full Run of one cofiguration require 123 seconds
-learning_rates = np.around(np.array([0.025]),3)
-weight_decays = np.around(np.array([0.045]),3)
+#learning_rates = np.around(np.array([0.035]),3)
+#weight_decays = np.around(np.array([0.025]),3)
 
 max_epoch = 5000
 epoch_per_eval = 1 # change this to a larger value to improve performance while reducing plot details
@@ -77,7 +77,7 @@ def myModel(weight_decay = 0.01):
     LR = tf.placeholder("float", [])
     regularizer = tf.nn.l2_loss(w1) + tf.nn.l2_loss(w2) + tf.nn.l2_loss(w3) + tf.nn.l2_loss(w4) + tf.nn.l2_loss(w5)  + tf.nn.l2_loss(w6)
     loss_op = tf.math.sqrt(tf.reduce_mean(tf.math.squared_difference(neural_network,Y)) + weight_decay * regularizer)
-    optimizer = tf.train.AdamOptimizer(LR).minimize(loss_op)
+    optimizer = tf.train.AdamOptimizer(LR, 0.799, 0.999).minimize(loss_op)
 
     return X, Y, LR, neural_network, loss_op, optimizer
 
