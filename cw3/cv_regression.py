@@ -3,6 +3,8 @@ import numpy as np
 import tensorflow as tf
 import matplotlib.pyplot as plt
 from sklearn.model_selection import KFold
+from tensorflow.python.client import device_lib 
+print(device_lib.list_local_devices())
 
 from functions.neural_network import *
 from functions.data_IO import *
@@ -27,13 +29,19 @@ seed = 2021
 
 k = 10
 KF = KFold(n_splits = k, random_state = seed, shuffle= True)
+
 ## only turning on either one of these learning rate settings
-# learning_rates = np.around(np.arange(0.01, 0.05, 0.01),3)
-# weight_decays = np.around(np.arange(0.01,0.05,0.01),3)
-learning_rates = np.around(np.array([0.01]),3)
-weight_decays = np.around(np.array([0.005]),3)
-max_epoch = 10000
+# Full RUn of these configs requires 123s * 5 * 5 time = 51.25mins
+learning_rates = np.around(np.arange(0.005, 0.051, 0.01),3)
+weight_decays = np.around(np.arange(0.005,0.051,0.01),3)
+
+## Full Run of one cofiguration require 123 seconds
+# learning_rates = np.around(np.array([0.01]),3)
+# weight_decays = np.around(np.array([0.005]),3)
+
+max_epoch = 5000
 epoch_per_eval = 1 # change this to a larger value to improve performance while reducing plot details
+eval_per_print = 100 # print every x eval, to reduce printed logs
 
 # ----------------------- DATA LOADING & PREPROCESSING ----------------------- #
 
@@ -76,7 +84,7 @@ def myModel(weight_decay = 0.01):
 # --------------------------------- TRAINING --------------------------------- #
 
 # storage for best settings in each combination of hyper-parameter.
-all_test_rmse = np.zeros((len(weight_decays),len(learning_rates), k))
+all_test_rmse = np.ones((len(weight_decays),len(learning_rates), k)) * np.inf
 all_test_loss = np.ones((len(weight_decays),len(learning_rates), k)) * np.inf
 all_train_loss = np.ones((len(weight_decays),len(learning_rates), k)) * np.inf
 
@@ -89,6 +97,7 @@ for weight_index in range(len(weight_decays)):
             
             print(f"Fold: {k_index + 1}")
     
+            # config=tf.ConfigProto(log_device_placement=True) # place this into tf.session to show u're using gpu or cpu
             with tf.Session() as sess:
     
                 # reset model
@@ -104,11 +113,11 @@ for weight_index in range(len(weight_decays)):
                 test_losses = []
                 rmses =[]
                 
+                epoch_start = time.time()
                 for epoch in range(max_epoch):
-                    epoch_start = time.time()
                     sess.run(optimizer, feed_dict={X: train_x, Y: train_y, LR: learning_rates[lr_index]})
     
-                    #Display the epoch
+                    # eval every epoch_per_eval epochs
                     actual_epoch = epoch + 1
                     if actual_epoch % epoch_per_eval == 0:
     
@@ -117,30 +126,30 @@ for weight_index in range(len(weight_decays)):
                         # calcuate all metrics
     
                         rmse = rmseScore(output,test_y)
-                        rmses.append(rmse)
+                        # rmses.append(rmse)
     
                         test_loss = np.mean(loss_op.eval({X: test_x, Y: test_y}))
-                        test_losses.append(test_loss)
-    
-    
+                        # test_losses.append(test_loss)
+        
                         train_loss = np.mean(loss_op.eval({X: train_x, Y: train_y}))
-                        train_losses.append(train_loss)
-    
-                    
-                        if test_loss < all_test_loss[weight_index][lr_index][k_index]:
+                        # train_losses.append(train_loss)
+                        
+                        if rmse < all_test_rmse[weight_index][lr_index][k_index]:
                             all_test_loss[weight_index][lr_index][k_index] = test_loss
                             all_train_loss[weight_index][lr_index][k_index] = train_loss
                             all_test_rmse[weight_index][lr_index][k_index] = rmse
-    
-                        epoch_end = time.time()
-    
-                        print(
-                            f"Epoch: {actual_epoch}\t"
-                            f"Test RMSE: {rmse:.6f}\t"
-                            f"Test Loss: {test_loss:.6f}\t"
-                            f"Train Loss: {train_loss:.6f}\t"
-                            f"Time: {(epoch_end - epoch_start):.6f}\t"
-                            )
+        
+                        # only print the result of eval every eval_per_print evals
+                        if actual_epoch % (epoch_per_eval * eval_per_print) == 0:
+                            epoch_end = time.time()
+                            print(
+                                f"Epoch: {actual_epoch}\t"
+                                f"Test RMSE: {rmse:.6f}\t"
+                                f"Test Loss: {test_loss:.6f}\t"
+                                f"Train Loss: {train_loss:.6f}\t"
+                                f"Time: {(epoch_end - epoch_start):.6f}\t"
+                                )
+                            epoch_start = time.time()
                 # # Trainloss and test loss compare graph to check overfitting and underfitting.
                 # if k_index == 0:
                 #     plt.plot(train_losses[max_epoch*0.1:])
