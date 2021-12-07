@@ -31,13 +31,13 @@ k = 10
 KF = KFold(n_splits = k, random_state = seed, shuffle= True)
 
 ## only turning on either one of these learning rate settings
-# Full RUn of these configs requires 123s * 5 * 5 time = 51.25mins
-learning_rates = np.around(np.arange(0.005, 0.051, 0.01),3)
-weight_decays = np.around(np.arange(0.005,0.051,0.01),3)
+## Full Run of these configs requires 123s * 5 * 5 time = 51.25mins
+# learning_rates = np.around(np.arange(0.005, 0.051, 0.01),3)
+# weight_decays = np.around(np.arange(0.005,0.051,0.01),3)
 
 ## Full Run of one cofiguration require 123 seconds
-# learning_rates = np.around(np.array([0.01]),3)
-# weight_decays = np.around(np.array([0.005]),3)
+learning_rates = np.around(np.array([0.025]),3)
+weight_decays = np.around(np.array([0.045]),3)
 
 max_epoch = 5000
 epoch_per_eval = 1 # change this to a larger value to improve performance while reducing plot details
@@ -76,7 +76,7 @@ def myModel(weight_decay = 0.01):
     # Define Loss to Optimize
     LR = tf.placeholder("float", [])
     regularizer = tf.nn.l2_loss(w1) + tf.nn.l2_loss(w2) + tf.nn.l2_loss(w3) + tf.nn.l2_loss(w4) + tf.nn.l2_loss(w5)  + tf.nn.l2_loss(w6)
-    loss_op = tf.reduce_mean(tf.math.squared_difference(neural_network,Y) + weight_decay * regularizer)
+    loss_op = tf.math.sqrt(tf.reduce_mean(tf.math.squared_difference(neural_network,Y)) + weight_decay * regularizer)
     optimizer = tf.train.AdamOptimizer(LR).minimize(loss_op)
 
     return X, Y, LR, neural_network, loss_op, optimizer
@@ -109,9 +109,9 @@ for weight_index in range(len(weight_decays)):
                 train_x, test_x = x_data[train_index], x_data[test_index]
                 train_y, test_y = np.reshape(y_data[train_index],(-1,1)), np.reshape(y_data[test_index],(-1,1))
                 
-                train_losses = []
-                test_losses = []
-                rmses =[]
+                # train_losses = []
+                # test_losses = []
+                # rmses =[]
                 
                 epoch_start = time.time()
                 for epoch in range(max_epoch):
@@ -165,6 +165,10 @@ for weight_index in range(len(weight_decays)):
 
 end = time.time()
 print("Time Elapsed: ", end - start)
+
+if len(learning_rates) == 1:
+    print("RMSE:\n", all_test_rmse)
+    print("Loss:\n", all_test_loss)
 
 for weight_index in range(len(weight_decays)):
     myBoxplot(all_test_loss[weight_index], learning_rates, 
