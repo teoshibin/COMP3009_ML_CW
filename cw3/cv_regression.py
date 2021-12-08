@@ -79,6 +79,25 @@ def myModel(weight_decay = 0.01):
     loss_op = tf.math.sqrt(tf.reduce_mean(tf.math.squared_difference(neural_network,Y)) + weight_decay * regularizer)
     optimizer = tf.train.AdamOptimizer(LR).minimize(loss_op)
 
+    # #Network parameters
+    # structure = np.array([
+    #     (8, ""),
+    #     (48, "relu"),
+    #     (32, "relu"),
+    #     (16, "relu"),
+    #     (32, "relu"),
+    #     (8, "relu"),
+    #     (1, "none"),
+    #     ])
+
+    # # Define Network
+    # neural_network, regularizer, X, Y = multi_layer_perceptron(structure)
+
+    # # Define Loss to Optimize
+    # LR = tf.placeholder("float", [])
+    # loss_op = tf.math.sqrt(tf.reduce_mean(tf.math.squared_difference(neural_network,Y)) + weight_decay * regularizer)
+    # optimizer = tf.train.AdamOptimizer(LR).minimize(loss_op)
+
     return X, Y, LR, neural_network, loss_op, optimizer
 
 # --------------------------------- TRAINING --------------------------------- #
