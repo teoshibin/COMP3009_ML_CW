@@ -3,6 +3,18 @@ import numpy as np
 
 # plot multiple box plot, also add average values and labels
 def myBoxplot(data, subxlabels, title="", xlabel="", ylabel=""):
+    """plot boxplot with mean, median and range on it
+
+    Args:
+        data (2d floats): data points, rows are different configs of experiments and columns are repeated experiments
+        subxlabels (1d floats): configs labels
+        title (str, optional): plot title. Defaults to "".
+        xlabel (str, optional): plot x label. Defaults to "".
+        ylabel (str, optional): plot y label. Defaults to "".
+
+    Returns:
+        (fig, ax): figure, boxplot obj
+    """
 
     fig, ax = plt.subplots()
     bp = ax.boxplot(np.transpose(data))

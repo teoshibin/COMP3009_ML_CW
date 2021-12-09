@@ -2,6 +2,17 @@ import tensorflow as tf
 
 #DEFINING WEIGHTS AND BIASES
 def one_layer_perceptron(input_x, input_size, output_size, activation_type="none"):
+    """define weights, biases and activation function one single layer
+
+    Args:
+        input_x (tensor): previous ANN layer with the output size of current input size
+        input_size (int): number of input nodes
+        output_size (int): number of output nodes
+        activation_type (str, optional): name of activation function. Defaults to "none".
+
+    Returns:
+        tensor: a layer of ANN that wrap apon previous layers with the size of input_size and output_size
+    """
 
     b = tf.Variable(tf.random_normal([output_size]))
     w = tf.Variable(tf.random_normal([input_size, output_size]))
@@ -23,18 +34,26 @@ def one_layer_perceptron(input_x, input_size, output_size, activation_type="none
     return layer, w
 
 def multi_layer_perceptron(structure):
-    
-    # # Network Structure
-    # structure = np.array([
-    #     (8, ""),
-    #     (48, "relu"),
-    #     (32, "relu"),
-    #     (16, "relu"),
-    #     (32, "relu"),
-    #     (8, "relu"),
-    #     (1, "none"),
-    #     ])
-    
+    """contruct multi layers perceptron with specified structure
+        
+        e.g.
+        structure = np.array([
+        (8, ""),
+        (48, "relu"),
+        (32, "relu"),
+        (16, "relu"),
+        (32, "relu"),
+        (8, "relu"),
+        (1, "none"),
+        ])
+
+    Args:
+        structure ([(int, string)]): array of tuples specifying number of nodes and activation function
+
+    Returns:
+        (tensor, tensor, placeholder, placeholder): complete MLP ANN, regularizer, X training input, Y actual training ouput
+    """
+        
     #Defining the input and the output
     X = tf.placeholder("float", [None, structure[0][0]])
     Y = tf.placeholder("float", [None, structure[-1][0]])

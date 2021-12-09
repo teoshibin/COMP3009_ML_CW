@@ -1,6 +1,17 @@
 import tensorflow as tf
 import numpy as np
+
 def f1Score(output, test_y):
+    """calculate F1 Score
+
+    Args:
+        output (2d floats): actual labels
+        test_y (2d floats): predicted labels
+
+    Returns:
+        float: f1 score
+    """
+    
     actual =np.argmax(test_y,1).astype(dtype='bool')
     predicted = np.argmax(tf.keras.backend.get_value(output),1).astype(dtype='bool')
 
@@ -32,16 +43,46 @@ def f1Score(output, test_y):
     return f1
 
 def rmseScore(output, test_y):
+    """calculate root mean square error
+
+    Args:
+        output (2d floats): actual labels
+        test_y (2d floats): predicted labels
+
+    Returns:
+        float: root mean square error
+    """
+    
     rmse = np.sqrt(np.mean(np.square(output - test_y)))
 
     return rmse
 
 def recall(predicted, actual):
+    """calculate recall
+
+    Args:
+        predicted (2d floats): predicted labels
+        actual (2d floats): actual labels
+
+    Returns:
+        float: recall value
+    """
+    
     TP = np.count_nonzero(predicted * actual)
     FN = np.count_nonzero((predicted - 1) * actual)
     return TP / (TP + FN)
 
 def precision(predicted, actual):
+    """calculate precision
+
+    Args:
+        predicted (2d floats): predicted labels
+        actual (2d floats): actual labels
+
+    Returns:
+        float: precision value
+    """
+    
     TP = np.count_nonzero(predicted * actual)
     FP = np.count_nonzero(predicted * (actual - 1))
     return TP / (TP + FP)
