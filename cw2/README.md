@@ -1,5 +1,10 @@
 # Decision Tree
 
+## Screenshots
+<p align="center" float="left">
+  <img src="results\classification_tree.jpg" height="200"/>
+  <img src="results\regression_tree.jpg" height="200"/>
+</p>
 
 ## Datasets
 - Classsification

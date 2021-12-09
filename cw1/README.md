@@ -1,6 +1,12 @@
 # Support Vector Machine
 train Support Vector Machines (SVMs) using different kernels, set hyper-parameters using inner-cross-fold validation.
 
+## Screenshots
+<p align="center" float="left">
+  <img src="results\svm_class_performance.jpg" height="150"/>
+  <img src="results\svm_reg_performance.jpg" height="150"/>
+</p>
+
 ## Datasets
 - Classsification
     [Heart failure clinical records Data Set](https://archive.ics.uci.edu/ml/datasets/Heart+failure+clinical+records)

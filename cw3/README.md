@@ -1,5 +1,14 @@
 # Artificial Neural Networks
 
+## Screenshots
+<p align="center" float="left">
+  <img src="results\classification\test_f1_dist.png" height="190"/>
+  <img src="results\regression\Figure_6.png" height="190"/>
+</p>
+<p align="center" float="left">
+  <img src="results\result.jpg" width="700"/>
+</p>
+
 ## Datasets
 - Classsification
     [Heart failure clinical records Data Set](https://archive.ics.uci.edu/ml/datasets/Heart+failure+clinical+records)
