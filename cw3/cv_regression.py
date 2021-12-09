@@ -1,4 +1,6 @@
+# University of Nottingham COMP 3009 Machine Learning GROUP 18
 
+# ANN
 import numpy as np
 import tensorflow as tf
 import matplotlib.pyplot as plt
@@ -6,6 +8,7 @@ from sklearn.model_selection import KFold
 from tensorflow.python.client import device_lib 
 print(device_lib.list_local_devices())
 
+# Custom Function
 from functions.neural_network import *
 from functions.data_IO import *
 from functions.data_preprocessing import *
@@ -14,12 +17,13 @@ from functions.metrics import *
 # from functions.math import *
 from functions.plots import *
 
+# Misc
 import sys
 import time
 
 # ---------------------- STORE AND PRINT STANDARD OUTPUT --------------------- #
 
-cdSubDir("cw3")
+cdSubDir("cw3") # workflow code to ensure this script ran in the correct dir
 sys.stdout = Logger("regression.log") # disable this to prevent print from generating .log files
 
 # ----------------------------------- START ---------------------------------- #
@@ -27,16 +31,19 @@ sys.stdout = Logger("regression.log") # disable this to prevent print from gener
 start = time.time()
 seed = 2021
 
+# cross validation parameters
 k = 10
-KF = KFold(n_splits = k, random_state = seed, shuffle= True)
+KF = KFold(n_splits = k, random_state = seed, shuffle= True) # cv data splitting obj
 
 ## only turning on either one of these learning rate settings
 ## Full Run of these configs requires 123s * 5 * 5 time = 51.25mins
+# hyper parameter tuning
 learning_rates = np.around(np.arange(0.005, 0.05, 0.01),3)
 weight_decays = np.around(np.arange(0.005, 0.05, 0.01),3)
 
 ## Full Run of one cofiguration require 123 seconds
-#learning_rates = np.around(np.array([0.035]),3)
+# final selected model
+#learning_rates = np.around(np.array([0.045]),3)
 #weight_decays = np.around(np.array([0.025]),3)
 
 max_epoch = 5000
@@ -52,6 +59,16 @@ x_data = minMaxNorm(x_data)
 # --------------------------- TENSOR GRAPH RELATED --------------------------- #
 
 def myModel(weight_decay = 0.01):
+    """construct MLP and define loss, optimizer
+
+    Args:
+        weight_decay (float, optional): weight regularization. Defaults to 0.01.
+
+    Returns:
+        X, Y, LR : input placeholders
+        NN, LossFunction, Optimizer : components to do training
+    """
+    
     #Network parameters
     n_input = 8
     n_hidden1 = 48
@@ -79,6 +96,8 @@ def myModel(weight_decay = 0.01):
     loss_op = tf.math.sqrt(tf.reduce_mean(tf.math.squared_difference(neural_network,Y)) + weight_decay * regularizer)
     optimizer = tf.train.AdamOptimizer(LR, 0.799, 0.999).minimize(loss_op)
 
+    ## Even more abstracted version of one_layer_perceptron function called multi_layer_perceptron
+    ## FOR SOME REASON THE INITTIAL WEIGHTS ARE INITIALIZED DIFFERENTLY COMPARE TO NONE ABSTRACTED VERSION
     # #Network parameters
     # structure = np.array([
     #     (8, ""),
@@ -107,31 +126,38 @@ all_test_rmse = np.ones((len(weight_decays),len(learning_rates), k)) * np.inf
 all_test_loss = np.ones((len(weight_decays),len(learning_rates), k)) * np.inf
 all_train_loss = np.ones((len(weight_decays),len(learning_rates), k)) * np.inf
 
+# grid search param 1
 for weight_index in range(len(weight_decays)):
+
+    # grid search param 2
     for lr_index in range(len(learning_rates)):
     
         print(f"Learning Rate: {learning_rates[lr_index]}")
-    
+
+        # k fold cross validation
         for k_index, (train_index, test_index) in enumerate(KF.split(x_data, y_data)):
             
             print(f"Fold: {k_index + 1}")
     
-            # config=tf.ConfigProto(log_device_placement=True) # place this into tf.session to show u're using gpu or cpu
+            # config=tf.ConfigProto(log_device_placement=True) # place this into tf.session to see if u're using gpu or cpu
             with tf.Session() as sess:
     
-                # reset model
+                # reconstruct model everytime before training
                 tf.set_random_seed(seed)
                 X, Y, LR, neural_network, loss_op, optimizer = myModel(weight_decays[weight_index])
                 init = tf.global_variables_initializer()
                 sess.run(init)
     
+                # split k fold dataset
                 train_x, test_x = x_data[train_index], x_data[test_index]
                 train_y, test_y = np.reshape(y_data[train_index],(-1,1)), np.reshape(y_data[test_index],(-1,1))
                 
+                # EXTRA CODE TO PLOT LOSS CURVE
                 # train_losses = []
                 # test_losses = []
                 # rmses =[]
                 
+                # training
                 epoch_start = time.time()
                 for epoch in range(max_epoch):
                     sess.run(optimizer, feed_dict={X: train_x, Y: train_y, LR: learning_rates[lr_index]})
@@ -142,17 +168,18 @@ for weight_index in range(len(weight_decays)):
     
                         output = neural_network.eval({X: test_x})
                         
-                        # calcuate all metrics
+                        # calcuate all calcuate all performance metrics and loss
     
                         rmse = rmseScore(output,test_y)
-                        # rmses.append(rmse)
-    
                         test_loss = np.mean(loss_op.eval({X: test_x, Y: test_y}))
-                        # test_losses.append(test_loss)
-        
                         train_loss = np.mean(loss_op.eval({X: train_x, Y: train_y}))
+                        
+                        # EXTRA CODE TO PLOT LOSS CURVE
+                        # rmses.append(rmse)
+                        # test_losses.append(test_loss)
                         # train_losses.append(train_loss)
                         
+                        # early stopping (similar concept but instead of stopping we record down the performance)
                         if rmse < all_test_rmse[weight_index][lr_index][k_index]:
                             all_test_loss[weight_index][lr_index][k_index] = test_loss
                             all_train_loss[weight_index][lr_index][k_index] = train_loss
@@ -169,6 +196,8 @@ for weight_index in range(len(weight_decays)):
                                 f"Time: {(epoch_end - epoch_start):.6f}\t"
                                 )
                             epoch_start = time.time()
+
+                # EXTRA CODE TO PLOT LOSS CURVE
                 # # Trainloss and test loss compare graph to check overfitting and underfitting.
                 # if k_index == 0:
                 #     plt.plot(train_losses[max_epoch*0.1:])
@@ -177,18 +206,21 @@ for weight_index in range(len(weight_decays)):
                 #     plt.legend(['train', 'validation'], loc='upper left')
                 #     plt.figure()
     
-            # reset model
+            # reset constructed model or so called graphs
             tf.reset_default_graph()
         
 # ------------------------------- PLOT FIGURES ------------------------------- #
 
+# calculate total time taken
 end = time.time()
 print("Time Elapsed: ", end - start)
 
+# only print the result of each fold if only one param config is specified
 if len(learning_rates) == 1 and len(weight_decays) == 1:
     print("RMSE:\n", all_test_rmse)
     print("Loss:\n", all_test_loss)
 
+# plot the range of loss and performance of all param configs
 for weight_index in range(len(weight_decays)):
     myBoxplot(all_test_loss[weight_index], learning_rates, 
               "Learning Rates 10-fold cv loss Distributions, weight decay = "+str(weight_decays[weight_index]), 
